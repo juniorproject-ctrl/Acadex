@@ -48,7 +48,8 @@ export default function Footer() {
             <ul className="space-y-4 text-sm text-brand-light-navy">
               <li><Link to="/">Help Center</Link></li>
               <li><Link to="/">Contact Us</Link></li>
-              <li><Link to="/">Report an Issue</Link></li>
+              <li><Link to="/feedback">Feedback</Link></li>
+              <li><Link to="/report">Report an Issue</Link></li>
               <li><Link to="/">Terms of Service</Link></li>
               <li><Link to="/">Privacy Policy</Link></li>
             </ul>

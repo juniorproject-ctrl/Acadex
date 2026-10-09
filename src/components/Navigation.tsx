@@ -31,6 +31,7 @@ export default function Navigation() {
               <Link to="/browse" className="nav-link">Browse Listings</Link>
               <Link to="/post" className="nav-link">Post a Listing</Link>
               <Link to="/community" className="nav-link">Community</Link>
+              <Link to="/feedback" className="nav-link">Feedback</Link>
               {currentUser&&<Link to="/dashboard" className="nav-link">{['tutor','leader','admin'].includes(currentUser.role)?'Dashboard':'My Learning'}</Link>}
             </div>
           </div>
@@ -42,7 +43,7 @@ export default function Navigation() {
             {!currentUser&&<Link to="/" className="text-link">Sign in</Link>}
           </div>
         </div>
-        {menu&&<div className="mobile-navigation"><Link to="/home">Home</Link><Link to="/browse">Browse Listings</Link><Link to="/post">Post a Listing</Link><Link to="/community">Community</Link>{currentUser&&<Link to="/dashboard">Dashboard / My Learning</Link>}</div>}
+        {menu&&<div className="mobile-navigation"><Link to="/home">Home</Link><Link to="/browse">Browse Listings</Link><Link to="/post">Post a Listing</Link><Link to="/community">Community</Link><Link to="/feedback">Feedback</Link>{currentUser&&<Link to="/dashboard">Dashboard / My Learning</Link>}</div>}
       </div>
     </nav>
   );

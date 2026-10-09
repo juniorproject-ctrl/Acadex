@@ -18,6 +18,7 @@ import Tutors, { TutorDetail } from './pages/Tutors';
 import Events, { EventDetail } from './pages/Events';
 import Dashboard from './pages/Dashboard';
 import ReportForm from './pages/Reports';
+import Feedback from './pages/Feedback';
 import Notifications from './pages/Notifications';
 import CourseCatalog from './pages/CourseCatalog';
 import Settings from './pages/Settings';
@@ -56,6 +57,7 @@ export default function App() {
 
         {/* Main App Routes */}
         <Route path="/home" element={<Layout><Home /></Layout>} />
+        <Route path="/feedback" element={<Layout><Feedback /></Layout>} />
         <Route path="/browse" element={<Layout><Browse /></Layout>} />
         <Route path="/post" element={<Protected><Layout><PostListing /></Layout></Protected>} />
         <Route path="/community" element={<Layout><Community /></Layout>} />

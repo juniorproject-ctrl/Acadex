@@ -48,6 +48,7 @@ export default function SignIn() {
           <p className="text-center text-brand-cream text-sm mt-8">Don&apos;t have an account yet? <Link to="/signup" className="font-bold underline">Create Account</Link></p>
         </form>
       </motion.div>
+      <Link to="/feedback" className="text-link mt-6">Share feedback</Link>
     </div>
   );
 }

@@ -3,6 +3,7 @@ import { Link,useSearchParams } from 'react-router-dom';
 import { ActionStatus,CommunityPage,Empty,ErrorBox,Field,Submit,useAction } from '../components/CommunityUI';
 import { formValues,mutate,useResource } from '../lib/community';
 import { useCurrentUser } from '../lib/auth';
+import { FeedbackReviews } from './Feedback';
 type Report={id:string;subject:string;details:string;reporter:string;status:string;resolution:string};
 function Review({report:r,reload}:{report:Report;reload:()=>void}){
  const action=useAction();
@@ -12,7 +13,7 @@ export function AdminDashboard(){
  const user=useCurrentUser(),reports=useResource<{items:Report[]}>(user?.role==='admin'?'/reports':null,15000),applications=useResource<{items:unknown[]}>(user?.role==='admin'?'/tutor-applications?status=pending':null,15000);
  const [filter,setFilter]=useState('open');
  if(user?.role!=='admin')return <CommunityPage title="Administration" showTabs={false}><Empty>Administrator access required.</Empty></CommunityPage>;
- return <CommunityPage title="Admin Dashboard" showTabs={false}><section className="detail-section"><h2>Tutor applications</h2><p>{applications.data?.items.length??0} awaiting review</p><Link className="text-link" to="/admin/tutor-applications">Review applications</Link></section><section className="detail-section"><h2>Complaints and reports</h2><Field label="Report status"><select value={filter} onChange={e=>setFilter(e.target.value)}><option value="open">Open</option><option value="resolved">Resolved</option><option value="dismissed">Dismissed</option><option value="all">All</option></select></Field><ErrorBox error={reports.error}/>{reports.loading?<Empty>Loading reports...</Empty>:reports.data?.items.filter(r=>filter==='all'||r.status===filter).map(r=><Review key={r.id} report={r} reload={reports.reload}/>)}{reports.data&&!reports.data.items.some(r=>filter==='all'||r.status===filter)&&<Empty>No reports in this status.</Empty>}</section></CommunityPage>;
+ return <CommunityPage title="Admin Dashboard" showTabs={false}><section className="detail-section"><h2>Tutor applications</h2><p>{applications.data?.items.length??0} awaiting review</p><Link className="text-link" to="/admin/tutor-applications">Review applications</Link></section><section className="detail-section"><h2>Complaints and reports</h2><Field label="Report status"><select value={filter} onChange={e=>setFilter(e.target.value)}><option value="open">Open</option><option value="resolved">Resolved</option><option value="dismissed">Dismissed</option><option value="all">All</option></select></Field><ErrorBox error={reports.error}/>{reports.loading?<Empty>Loading reports...</Empty>:reports.data?.items.filter(r=>filter==='all'||r.status===filter).map(r=><Review key={r.id} report={r} reload={reports.reload}/>)}{reports.data&&!reports.data.items.some(r=>filter==='all'||r.status===filter)&&<Empty>No reports in this status.</Empty>}</section><FeedbackReviews /></CommunityPage>;
 }
 export default function ReportForm(){
  const action=useAction(),[params]=useSearchParams();

@@ -121,6 +121,12 @@ export default function Home() {
           </div>
         </div>
       </section>
+      <section className="bg-white px-4 py-10 border-t border-gray-200">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+          <div><h2 className="text-2xl text-brand-navy mb-2">Help shape Acadex</h2><p className="text-brand-light-navy">Have a suggestion or spotted a problem? We'd love to hear from you.</p></div>
+          <button onClick={() => navigate('/feedback')} className="action-button">Share feedback</button>
+        </div>
+      </section>
     </div>
   );
 }

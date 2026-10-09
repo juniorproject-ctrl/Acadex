@@ -18,6 +18,7 @@ import eventRoutes from './server/community/events';
 import accountRoutes from './server/community/account';
 import applicationRoutes from './server/community/applications';
 import reportRoutes from './server/community/reports';
+import feedbackRoutes from './server/community/feedback';
 import paymentRoutes,{paymentWebhook} from './server/community/payments';
 
 async function startServer() {
@@ -54,6 +55,7 @@ async function startServer() {
   app.use('/api/account', accountRoutes);
   app.use('/api/tutor-applications', applicationRoutes);
   app.use('/api/reports', reportRoutes);
+  app.use('/api/feedback', feedbackRoutes);
   app.use('/api/payments', paymentRoutes);
   app.use('/api', notFound);
 
