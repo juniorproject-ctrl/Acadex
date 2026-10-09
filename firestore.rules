@@ -1,0 +1,43 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+    function isSignedIn() { return request.auth != null; }
+    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+
+    // Users
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow create: if isOwner(userId) && incoming().role == 'student';
+      allow update: if isOwner(userId) && !incoming().diff(existing()).affectedKeys().hasAny(['role', 'uid']);
+    }
+
+    // Listings
+    match /listings/{listingId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && incoming().sellerId == request.auth.uid;
+      allow update: if isSignedIn() && (existing().sellerId == request.auth.uid || isAdmin());
+      allow delete: if isSignedIn() && existing().sellerId == request.auth.uid;
+    }
+
+    // Community Content (Events, Past Papers, Study Groups)
+    match /events/{eventId} { allow read: if isSignedIn(); }
+    match /past_papers/{paperId} { allow read: if isSignedIn(); }
+    match /study_groups/{groupId} { 
+      allow read: if isSignedIn();
+      allow update: if isSignedIn(); // For joining
+    }
+    
+    function isAdmin() {
+      return isSignedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+  }
+}

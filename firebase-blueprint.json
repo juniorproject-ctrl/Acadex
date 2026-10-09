@@ -1,0 +1,102 @@
+{
+  "entities": {
+    "users": {
+      "title": "User",
+      "description": "Represents a student user of the platform.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "displayName": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "universityId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "role": { "type": "string", "enum": ["student", "admin"] }
+      },
+      "required": ["uid", "displayName", "email"]
+    },
+    "listings": {
+      "title": "Listing",
+      "description": "An item for sale or service offered.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "sellerId": { "type": "string" },
+        "sellerName": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "price": { "type": "number" },
+        "category": { "type": "string", "enum": ["Textbooks", "Electronics", "Study Materials", "Supplies", "Lab Equipment", "Others"] },
+        "condition": { "type": "string", "enum": ["New", "Like New", "Good", "Fair", "Poor"] },
+        "images": { "type": "array", "items": { "type": "string" } },
+        "location": { "type": "string" },
+        "deliveryOptions": { "type": "array", "items": { "type": "string" } },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "status": { "type": "string", "enum": ["active", "sold", "draft"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["sellerId", "title", "price", "category", "condition"]
+    },
+    "community_events": {
+      "title": "Campus Event",
+      "description": "Events happening on campus.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "university": { "type": "string" },
+        "date": { "type": "string", "format": "date" },
+        "type": { "type": "string", "enum": ["Social", "Career", "Workshop"] },
+        "image": { "type": "string" },
+        "description": { "type": "string" }
+      }
+    },
+    "past_papers": {
+      "title": "Past Paper",
+      "description": "Educational documents shared by students.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "department": { "type": "string" },
+        "downloads": { "type": "number" },
+        "universityId": { "type": "string" }
+      }
+    },
+    "study_groups": {
+       "title": "Study Group",
+       "description": "Groups students can join for collaborative studying.",
+       "type": "object",
+       "properties": {
+         "id": { "type": "string" },
+         "course": { "type": "string" },
+         "title": { "type": "string" },
+         "description": { "type": "string" },
+         "memberCount": { "type": "number" },
+         "universityId": { "type": "string" }
+       }
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "users",
+      "description": "User profiles"
+    },
+    "/listings/{listingId}": {
+      "schema": "listings",
+      "description": "Marketplace listings"
+    },
+    "/events/{eventId}": {
+      "schema": "community_events",
+      "description": "Campus events"
+    },
+    "/past_papers/{paperId}": {
+      "schema": "past_papers",
+      "description": "Past papers library"
+    },
+    "/study_groups/{groupId}": {
+      "schema": "study_groups",
+      "description": "Active study groups"
+    }
+  }
+}
