@@ -44,6 +44,7 @@ export default function SignIn() {
             <input type="password" placeholder="Enter your password" className="input-field" value={password} onChange={(event) => setPassword(event.target.value)} required disabled={loading} />
           </div>
           <button type="submit" disabled={loading} className="w-full btn-primary mt-4">{loading ? 'Signing in...' : 'Sign In'}</button>
+          <p className="text-center text-brand-cream text-sm"><Link to="/forgot-password" className="font-bold underline">Forgot password?</Link></p>
           <p className="text-center text-brand-cream text-sm mt-8">Don&apos;t have an account yet? <Link to="/signup" className="font-bold underline">Create Account</Link></p>
         </form>
       </motion.div>

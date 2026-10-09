@@ -57,8 +57,6 @@ async function startServer() {
   app.use('/api/payments', paymentRoutes);
   app.use('/api', notFound);
 
-  console.log('Runtime mode:', JSON.stringify(process.env.NODE_ENV), 'Configured mode:', JSON.stringify(config.nodeEnv));
- 
   if (config.nodeEnv.trim() !== 'production' && !process.env.RAILWAY_ENVIRONMENT_ID) {
     const vite = await createViteServer({ server: { middlewareMode: true }, appType: 'spa' });
     app.use(vite.middlewares);

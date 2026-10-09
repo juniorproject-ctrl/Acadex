@@ -7,6 +7,7 @@ import Browse from './pages/Browse';
 import PostListing from './pages/PostListing';
 import Community from './pages/Community';
 import SignIn from './pages/SignIn';
+import ForgotPassword from './pages/ForgotPassword';
 import SignUp from './pages/SignUp';
 import VerifyOTP from './pages/VerifyOTP';
 import { hasSession } from './lib/auth';
@@ -50,6 +51,7 @@ export default function App() {
         <Route path="/" element={<SignIn />} />
         <Route path="/login" element={<Navigate to="/" replace />} />
         <Route path="/signup" element={<SignUp />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/verify" element={<VerifyOTP />} />
 
         {/* Main App Routes */}

@@ -3,6 +3,11 @@ import { ApiError } from './errors';
 const universityEmailPattern = /^[^\s@]+@(?:(?:[a-z0-9-]+\.)*ac\.ae|aus\.edu)$/i;
 const passwordPattern = /^(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
 
+export function validatePassword(value:unknown){
+  if(typeof value!=='string'||!passwordPattern.test(value)||Buffer.byteLength(value,'utf8')>72)throw new ApiError(400,'Password must be at least 8 characters, include a number and special character, and be no more than 72 bytes.');
+  return value;
+}
+
 export function isAllowedUniversityEmail(email: string) {
   return universityEmailPattern.test(email.trim());
 }
@@ -16,7 +21,7 @@ export function validateRegistration(input: { name?: unknown; email?: unknown; p
 
   if (name.length < 2 || name.length > 100) throw new ApiError(400, 'Please enter a name between 2 and 100 characters.');
   if (!isAllowedUniversityEmail(email)) throw new ApiError(400, 'Please use a UAE university email from a .ac.ae campus domain or aus.edu.');
-  if (!passwordPattern.test(password)) throw new ApiError(400, 'Password must be at least 8 characters and include a number and special character.');
+  validatePassword(password);
 
   return { name, email, password, role };
 }

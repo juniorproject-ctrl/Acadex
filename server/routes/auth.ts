@@ -10,6 +10,7 @@ import { query } from '../db';
 import { ApiError, asyncHandler } from '../errors';
 import { requireAuth, type AuthRequest } from '../middleware/auth';
 import { validateLogin, validateOtp, validateRegistration } from '../validation';
+import { createPasswordResetRouter } from './passwordReset';
 
 type UserRow = RowDataPacket & AuthUser & { password_hash: string; is_verified: number; last_otp_sent_at: Date | null };
 type OtpRow = RowDataPacket & { code_hash: string; expires_at: Date; attempts: number };
@@ -21,13 +22,15 @@ function sixDigitCode() {
   return crypto.randomInt(100000, 1000000).toString();
 }
 
-async function sendVerificationEmail(name: string, email: string, code: string) {
+async function sendVerificationEmail(name: string, email: string, code: string, reset=false) {
+  const subject=reset?'Reset your Acadex password':'Your Acadex verification code';
+  const text=reset?`Hello ${name}, your Acadex password reset code is ${code}. It expires in 10 minutes. If you did not request this, ignore this email.`:`Hello ${name}, your Acadex verification code is ${code}. It expires in 10 minutes.`;
   if(process.env.RESEND_API_KEY){
     if(!process.env.MAIL_FROM)throw new ApiError(503,'Configure MAIL_FROM with your verified email sender.');
     const response=await fetch('https://api.resend.com/emails',{
       method:'POST',signal:AbortSignal.timeout(10000),
       headers:{Authorization:'Bearer '+process.env.RESEND_API_KEY,'Content-Type':'application/json'},
-      body:JSON.stringify({from:process.env.MAIL_FROM,to:[email],subject:'Your Acadex verification code',text:`Hello ${name}, your Acadex verification code is ${code}. It expires in 10 minutes.`}),
+      body:JSON.stringify({from:process.env.MAIL_FROM,to:[email],subject,text}),
     });
     if(!response.ok)throw new ApiError(503,'The email provider could not send your verification code. Check the sender configuration.');
     return;
@@ -47,8 +50,8 @@ async function sendVerificationEmail(name: string, email: string, code: string) 
   await transporter.sendMail({
     from,
     to: email,
-    subject: 'Your Acadex verification code',
-    text: `Hello ${name}, your Acadex verification code is ${code}. It expires in 10 minutes.`,
+    subject,
+    text,
   });
 }
 
@@ -66,10 +69,11 @@ async function issueOtp(user: UserRow) {
 }
 
 const router = Router();
+router.use(createPasswordResetRouter((name,email,code)=>sendVerificationEmail(name,email,code,true)));
 
 router.post('/register', otpLimiter, asyncHandler(async (req, res) => {
   const { name, email, password, role } = validateRegistration(req.body);
-  const users = await query<UserRow[]>('SELECT id, name, email, role, password_hash, is_verified, last_otp_sent_at FROM users WHERE email = ?', [email]);
+  const users = await query<UserRow[]>('SELECT id, name, email, role, session_version, password_hash, is_verified, last_otp_sent_at FROM users WHERE email = ?', [email]);
   let user = users[0];
 
   if (user?.is_verified) throw new ApiError(409, 'An account with this email already exists. Please sign in instead.');
@@ -91,7 +95,7 @@ router.post('/register', otpLimiter, asyncHandler(async (req, res) => {
 
 router.post('/resend-otp', otpLimiter, asyncHandler(async (req, res) => {
   const { email } = validateOtp({ email: req.body?.email, code: '000000' });
-  const users = await query<UserRow[]>('SELECT id, name, email, role, password_hash, is_verified, last_otp_sent_at FROM users WHERE email = ?', [email]);
+  const users = await query<UserRow[]>('SELECT id, name, email, role, session_version, password_hash, is_verified, last_otp_sent_at FROM users WHERE email = ?', [email]);
   const user = users[0];
   if (!user || user.is_verified) throw new ApiError(400, 'No unverified account was found for this email.');
   await issueOtp(user);
@@ -100,7 +104,7 @@ router.post('/resend-otp', otpLimiter, asyncHandler(async (req, res) => {
 
 router.post('/verify-otp', asyncHandler(async (req, res) => {
   const { email, code } = validateOtp(req.body);
-  const users = await query<UserRow[]>('SELECT id, name, email, role, password_hash, is_verified, last_otp_sent_at FROM users WHERE email = ?', [email]);
+  const users = await query<UserRow[]>('SELECT id, name, email, role, session_version, password_hash, is_verified, last_otp_sent_at FROM users WHERE email = ?', [email]);
   const user = users[0];
   if (!user) throw new ApiError(400, 'No account was found for this email.');
   if (user.is_verified) throw new ApiError(400, 'This account is already verified. Please sign in.');
@@ -127,7 +131,7 @@ router.post('/verify-otp', asyncHandler(async (req, res) => {
 
 router.post('/login', loginLimiter, asyncHandler(async (req, res) => {
   const { email, password } = validateLogin(req.body);
-  const users = await query<UserRow[]>('SELECT id, name, email, role, password_hash, is_verified, last_otp_sent_at FROM users WHERE email = ?', [email]);
+  const users = await query<UserRow[]>('SELECT id, name, email, role, session_version, password_hash, is_verified, last_otp_sent_at FROM users WHERE email = ?', [email]);
   const user = users[0];
   if (!user || !(await bcrypt.compare(password, user.password_hash))) throw new ApiError(401, 'Invalid email or password.');
   if (!user.is_verified) throw new ApiError(403, 'Verify your email before signing in.');
@@ -135,7 +139,7 @@ router.post('/login', loginLimiter, asyncHandler(async (req, res) => {
 }));
 
 router.get('/me', requireAuth, asyncHandler(async (req: AuthRequest, res) => {
-  const users = await query<UserRow[]>('SELECT id, name, email, role, password_hash, is_verified, last_otp_sent_at FROM users WHERE id = ? AND is_verified = 1', [req.user!.id]);
+  const users = await query<UserRow[]>('SELECT id, name, email, role, session_version, password_hash, is_verified, last_otp_sent_at FROM users WHERE id = ? AND is_verified = 1', [req.user!.id]);
   const user = users[0];
   if (!user) throw new ApiError(401, 'Your session is no longer valid.');
   return res.json({ user: publicUser(user) });
