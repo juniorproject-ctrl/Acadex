@@ -1,0 +1,9 @@
+node_modules
+dist
+.git
+.env*
+.demo-accounts.local.json
+test-results
+uploads
+private-papers
+private-tutor-documents
