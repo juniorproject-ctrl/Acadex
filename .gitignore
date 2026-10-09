@@ -1,0 +1,14 @@
+node_modules/
+.demo-accounts.local.json
+private-tutor-documents/
+build/
+dist/
+coverage/
+.DS_Store
+*.log
+.env*
+!.env.example
+uploads/*
+!uploads/.gitkeep
+private-papers/
+test-results/
