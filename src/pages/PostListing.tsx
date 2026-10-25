@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Camera, Plus, X } from 'lucide-react';
 import { api, type ApiListing } from '../lib/api';
 import {
@@ -12,6 +12,10 @@ import {
 type SelectedImage = { file?: File; preview: string };
 
 export default function PostListing() {
+  const [params] = useSearchParams();
+  const requestedId = params.get('edit');
+  const [loading, setLoading] = useState(!!requestedId);
+  const [saving, setSaving] = useState(false);
   const [images, setImages] = useState<SelectedImage[]>([]);
   const [title, setTitle] = useState('');
   const [price, setPrice] = useState('');
@@ -30,15 +34,30 @@ export default function PostListing() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    api.myListings()
-      .then((result) => setDrafts(result.listings.filter((listing) => listing.status === 'draft')))
-      .catch(() => setDrafts([]));
-  }, []);
+    let active=true;
+    setEditingId(null);
+    setError('');
+    setLoading(!!requestedId);
+    if(!requestedId){setEditingId(null);setTitle('');setPrice('');setCategory('');setCondition('');setDescription('');setLocation('');setPickupAvailable(true);setSellerDelivery(false);setImages([]);setAgreed(false);setError('');}
+    api.myListings().then(result=>{
+      if(!active)return;
+      setDrafts(result.listings.filter(listing=>listing.status==='draft'));
+      if(requestedId){
+        const listing=result.listings.find(item=>item.id===requestedId);
+        if(!listing)throw new Error('Listing not found in your account.');
+        if(listing.status==='sold')throw new Error('Sold listings cannot be edited.');
+        continueDraft(listing);
+      }
+    }).catch(error=>{if(active)setError(error instanceof Error?error.message:'Unable to load your listings.');})
+      .finally(()=>{if(active)setLoading(false);});
+    return()=>{active=false;};
+  }, [requestedId]);
 
   const continueDraft = (draft: ApiListing) => {
     setEditingId(draft.id);
+    setAgreed(false);
     setTitle(draft.title === 'Untitled draft' ? '' : draft.title);
-    setPrice(draft.price ? String(draft.price) : '');
+    setPrice(String(draft.price));
     setCategory(draft.category as ListingCategory);
     setCondition(draft.condition as ListingCondition);
     setDescription(draft.description);
@@ -46,7 +65,7 @@ export default function PostListing() {
     setPickupAvailable(draft.pickupAvailable);
     setSellerDelivery(draft.sellerDelivery);
     setImages(draft.images.map((preview) => ({ preview })));
-    setSuccess('Draft loaded. You can continue editing it.');
+    setSuccess('');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -73,6 +92,8 @@ export default function PostListing() {
   };
 
   const saveListing = async (status: 'draft' | 'active') => {
+    if(saving||loading)return;
+    if(requestedId&&!editingId){setError('This listing could not be loaded.');return;}
     setError('');
     setSuccess('');
     if (status === 'active' && (!title.trim() || !price || !category || !condition || !description.trim() || !location.trim())) {
@@ -106,14 +127,17 @@ export default function PostListing() {
     formData.append('condition', condition);
     formData.append('description', description);
     formData.append('location', location);
+    if(editingId)formData.append('retainedImages',JSON.stringify(images.filter(image=>!image.file).map(image=>image.preview)));
     images.forEach((image) => { if (image.file) formData.append('images', image.file); });
     try {
+      setSaving(true);
       if (editingId) await api.updateListing(editingId, formData);
       else await api.createListing(formData);
-      setSuccess(status === 'draft' ? 'Draft saved. You can return later to continue it.' : 'Your listing was published.');
-      window.setTimeout(() => navigate('/browse'), 700);
+      navigate('/my-listings');
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Unable to save the listing.');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -125,7 +149,7 @@ export default function PostListing() {
   return (
     <div className="max-w-4xl mx-auto py-12 px-4">
       <div className="text-center mb-10">
-        <h1 className="text-4xl text-brand-navy mb-2">Create New Listing</h1>
+        <h1 className="text-4xl text-brand-navy mb-2">{editingId?'Edit Listing':'Create New Listing'}</h1>
         <p className="text-brand-light-navy text-sm">Fill in the details below to list your item for sale</p>
         {drafts.length > 0 && !editingId && (
           <div className="mt-5 flex flex-wrap justify-center gap-2">
@@ -135,7 +159,8 @@ export default function PostListing() {
       </div>
 
       <div className="bg-[#E5E7EB] p-8 md:p-12 rounded-2xl shadow-sm">
-        <form onSubmit={handleSubmit} className="space-y-8">
+        <form onSubmit={handleSubmit}><fieldset disabled={loading||saving} className="space-y-8">
+          {loading&&<p role="status">Loading listing...</p>}
           {error && <div className="bg-red-100 text-red-600 p-3 rounded-lg text-sm font-medium">{error}</div>}
           {success && <div className="bg-green-100 text-green-700 p-3 rounded-lg text-sm font-medium">{success}</div>}
 
@@ -159,6 +184,7 @@ export default function PostListing() {
                   <>
                   <img src={images[0].preview} alt="Preview" className="w-full h-full object-cover" />
                     <button
+                      type="button" aria-label="Remove main photo"
                       onClick={(e) => { e.stopPropagation(); removeImage(0); }}
                       className="absolute top-2 right-2 bg-brand-navy text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                     >
@@ -184,6 +210,7 @@ export default function PostListing() {
                     <>
                       <img src={images[i].preview} alt={`Preview ${i}`} className="w-full h-full object-cover" />
                       <button
+                        type="button" aria-label={'Remove photo '+(i+1)}
                         onClick={(e) => { e.stopPropagation(); removeImage(i); }}
                         className="absolute top-1 right-1 bg-brand-navy text-white p-0.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                       >
@@ -207,7 +234,7 @@ export default function PostListing() {
             <div className="space-y-2">
               <label className="text-sm font-bold text-brand-navy block">Price</label>
               <div className="relative">
-                <input type="number" placeholder="0.00" className="w-full bg-white border-none rounded-lg p-3 text-sm pr-12 text-right" value={price} onChange={(e) => setPrice(e.target.value)} min="0" />
+                <input type="number" step="0.01" placeholder="0.00" className="w-full bg-white border-none rounded-lg p-3 text-sm pr-12 text-right" value={price} onChange={(e) => setPrice(e.target.value)} min="0" />
                 <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-brand-light-navy">AED</span>
               </div>
             </div>
@@ -273,14 +300,14 @@ export default function PostListing() {
             </label>
             <div className="flex space-x-4 w-full md:w-auto">
               <button type="button" onClick={() => void saveListing('draft')} className="flex-1 md:flex-none px-10 py-3 bg-[#A6B1C2] text-white font-bold rounded-lg hover:bg-gray-500 transition-colors">
-                Save as Draft
+                {saving?'Saving...':'Save as Draft'}
               </button>
               <button type="submit" className="flex-1 md:flex-none px-10 py-3 bg-brand-navy text-white font-bold rounded-lg hover:bg-brand-light-navy transition-colors">
-                Publish Listing
+                {saving?'Saving...':editingId?'Save Changes':'Publish Listing'}
               </button>
             </div>
           </div>
-        </form>
+        </fieldset></form>
       </div>
     </div>
   );

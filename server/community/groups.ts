@@ -5,6 +5,7 @@ import { query } from '../db';
 import { ApiError, asyncHandler } from '../errors';
 import { requireAuth } from '../middleware/auth';
 import { course, filters, httpsUrl, notifyGroup, page, rows, text, timeRange, transaction, university, userId, verified } from './shared';
+import { academicFilters } from './academicFilters';
 
 const router = Router();
 const selection = 'SELECT g.id,g.owner_id AS ownerId,g.title,g.description,g.course_id AS courseId,g.university_id AS universityId,u.name AS university,c.name AS course,c.code,a.name AS leader,(SELECT COUNT(*) FROM group_members m WHERE m.group_id=g.id) AS members';
@@ -24,6 +25,7 @@ async function member(id: string, user: string) {
 }
 router.get('/', asyncHandler(async (req,res) => {
   const {clauses,values} = filters(req,'g.university_id',['g.title','g.description','c.name','c.code','a.name']);
+  await academicFilters(req,clauses,values);
   res.json(await page(req,selection,from,clauses,values,'g.created_at DESC,g.id'));
 }));
 router.get('/:id', asyncHandler(async (req,res) => { res.json(await group(req.params.id)); }));

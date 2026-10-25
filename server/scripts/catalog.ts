@@ -3,6 +3,7 @@ import path from 'node:path';
 import { load } from 'cheerio';
 import { pool } from '../db';
 import { starterSubjects, starterUniversities } from '../data/starter-catalog';
+import { academicTopics } from '../../src/lib/academicTopics';
 
 type Major = {id:string;name:string;sourceUrl:string;courses:{code:string;name:string;isShared:boolean}[]};
 const snapshotPath = path.resolve('server/data/sharjah-catalog.json');
@@ -66,6 +67,17 @@ async function main() {
           const courseId = institution.id+'-'+code;
           await connection.execute('INSERT IGNORE INTO courses (id,university_id,code,name,is_shared,source_url) VALUES (?,?,?,?,FALSE,?)', [courseId,institution.id,code,topic,'']);
           await connection.execute('INSERT IGNORE INTO course_majors (course_id,major_id) VALUES (?,?)', [courseId,majorId]);
+        }
+      }
+    }
+    for(const institution of starterUniversities){
+      for(const topic of academicTopics){
+        const majorId=institution.id+'-basic-'+topic.id;
+        await connection.execute('INSERT IGNORE INTO majors (id,university_id,name,source_url) VALUES (?,?,?,?)',[majorId,institution.id,topic.name,'']);
+        for(const [index,name] of topic.courses.entries()){
+          const code='TOPIC-'+topic.id.toUpperCase()+'-'+(index+1),id=institution.id+'-'+code;
+          await connection.execute('INSERT IGNORE INTO courses (id,university_id,code,name,is_shared,source_url) VALUES (?,?,?,?,FALSE,?)',[id,institution.id,code,name,'']);
+          await connection.execute('INSERT IGNORE INTO course_majors (course_id,major_id) VALUES (?,?)',[id,majorId]);
         }
       }
     }

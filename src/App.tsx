@@ -21,6 +21,7 @@ import ReportForm from './pages/Reports';
 import Feedback from './pages/Feedback';
 import Messages from './pages/Messages';
 import ListingDetail from './pages/ListingDetail';
+import MyListings from './pages/MyListings';
 import Notifications from './pages/Notifications';
 import CourseCatalog from './pages/CourseCatalog';
 import Settings from './pages/Settings';
@@ -65,6 +66,7 @@ export default function App() {
         <Route path="/browse" element={<Layout><Browse /></Layout>} />
         <Route path="/listings/:id" element={<Layout><ListingDetail /></Layout>} />
         <Route path="/post" element={<Protected><Layout><PostListing /></Layout></Protected>} />
+        <Route path="/my-listings" element={<Layout><MyListings /></Layout>} />
         <Route path="/community" element={<Layout><Community /></Layout>} />
         <Route path="/search" element={<Layout><Community search /></Layout>} />
         <Route path="/past-papers" element={<Layout><PastPapers /></Layout>} />

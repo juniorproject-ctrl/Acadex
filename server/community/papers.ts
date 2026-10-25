@@ -9,15 +9,14 @@ import { query } from '../db';
 import { ApiError, asyncHandler } from '../errors';
 import { requireAuth } from '../middleware/auth';
 import { course, filters, page, text, userId, verified } from './shared';
+import { academicFilters } from './academicFilters';
 
 const router = Router();
 const directory = config.paperDirectory;
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024, files: 1 } });
 router.get('/', asyncHandler(async (req, res) => {
   const { clauses, values } = filters(req, 'c.university_id', ['p.title','c.code','c.name']);
-  if (req.query.course) { clauses.push('c.id = ?'); values.push(String(req.query.course)); }
-  if (req.query.major === 'shared') clauses.push('c.is_shared = TRUE');
-  else if (req.query.major) { clauses.push('EXISTS (SELECT 1 FROM course_majors cm WHERE cm.course_id = c.id AND cm.major_id = ?)'); values.push(String(req.query.major)); }
+  await academicFilters(req,clauses,values);
   res.json(await page(req, 'SELECT p.id,p.owner_id AS ownerId,p.title,p.academic_year AS academicYear,p.exam_type AS examType,p.created_at AS createdAt,c.name AS course,c.code,u.name AS university', 'FROM past_papers p JOIN courses c ON c.id=p.course_id JOIN universities u ON u.id=c.university_id', clauses, values, 'p.created_at DESC,p.id'));
 }));
 router.get('/:id/download', asyncHandler(async (req, res) => {

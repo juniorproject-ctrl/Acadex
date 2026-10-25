@@ -11,12 +11,13 @@ import messages from '../community/messages';
 import listings from '../routes/listings';
 import catalog from '../community/catalog';
 import { paymentClient } from '../community/payments';
+import papers from '../community/papers';
 
 test('marketplace conversations, handover choices and catalog access', {skip: process.env.MARKETPLACE_INTEGRATION !== '1'}, async t => {
   const users = Array.from({length:3}, () => ({id:randomUUID(),name:'Marketplace test',email:randomUUID()+'@example.test',role:'student'}));
   const tokens = users.map(createAccessToken), listingId=randomUUID();
   const app=express(); app.use(express.json());
-  app.use('/messages',messages); app.use(['/listings','/catalog'],requireAuth,verified); app.use('/listings',listings); app.use('/catalog',catalog); app.use(errorHandler);
+  app.use('/messages',messages); app.use(['/listings','/catalog','/papers'],requireAuth,verified); app.use('/listings',listings); app.use('/catalog',catalog); app.use('/papers',papers); app.use(errorHandler);
   const server=app.listen(0,'127.0.0.1');await new Promise<void>(resolve=>server.once('listening',resolve));
   const base='http://127.0.0.1:'+(server.address() as any).port;
   const call=async(route:string,status:number,who:number|null=0,body?:unknown,method=body===undefined?'GET':'POST')=>{
@@ -24,6 +25,7 @@ test('marketplace conversations, handover choices and catalog access', {skip: pr
     const data=response.status===204?null:await response.json();assert.equal(response.status,status,JSON.stringify(data));return data;
   };
   let conversation='';
+  const paperIds:string[]=[];
   try {
     for(const u of users)await query('INSERT INTO users (id,name,email,password_hash,role,is_verified) VALUES (?,?,?,?,?,TRUE)',[u.id,u.name,u.email,'disabled-test-login',u.role]);
     await query("INSERT INTO listings (id,owner_id,title,description,price,category,item_condition,location,status) VALUES (?,?,?, ?,50,'Textbooks','Good','Sharjah','ACTIVE')",[listingId,users[1].id,'Marketplace test textbook','A textbook used only for automated testing.']);
@@ -38,9 +40,30 @@ test('marketplace conversations, handover choices and catalog access', {skip: pr
       }
     });
     await t.test('handover preferences persist and empty active choices are rejected',async()=>{
+      await call('/listings/'+listingId,403,0,{title:'Not my listing'},'PATCH');
+      await call('/listings/'+listingId,404,0,undefined,'DELETE');
       await call('/listings/'+listingId,400,1,{pickupAvailable:false,sellerDelivery:false},'PATCH');
       const data=await call('/listings/'+listingId,200,1,{pickupAvailable:false,sellerDelivery:true},'PATCH');
       assert.equal(data.listing.pickupAvailable,false);assert.equal(data.listing.sellerDelivery,true);assert.equal(data.listing.condition,'Good');
+      await call('/listings/'+listingId,400,1,{retainedImages:JSON.stringify(['/another-users-image.jpg'])},'PATCH');
+      await call('/listings/'+listingId,400,1,{retainedImages:'[]'},'PATCH');
+      await query('INSERT INTO listing_images (id,listing_id,image_url,position) VALUES (?,?,?,1)',[randomUUID(),listingId,'/second-test-image.jpg']);
+      const edited=await call('/listings/'+listingId,200,1,{title:'Updated test textbook',price:'75.50',retainedImages:JSON.stringify(['/second-test-image.jpg'])},'PATCH');
+      assert.equal(edited.listing.price,75.5);assert.deepEqual(edited.listing.images,['/second-test-image.jpg']);
+      await call('/listings/'+listingId,200,1,{title:'Marketplace test textbook'},'PATCH');
+    });
+    await t.test('one simple course filter finds both old and new course records',async()=>{
+      const records=await query<any[]>("SELECT id FROM courses WHERE university_id='uos' AND code IN ('BASIC-CS1','TOPIC-CS-1')");
+      assert.equal(records.length,2);
+      const marker=randomUUID();
+      for(const record of records){
+        const id=randomUUID();paperIds.push(id);
+        await query("INSERT INTO past_papers (id,owner_id,course_id,title,academic_year,exam_type,file_name) VALUES (?,?,?,?,2026,'Practice',?)",[id,users[0].id,record.id,marker,id+'.pdf']);
+      }
+      const data=await call('/papers?'+new URLSearchParams({university:'uos',major:'topic:cs',course:'topic:Programming',q:marker}),200);
+      assert.equal(data.items.length,2);
+      const wrong=await call('/papers?'+new URLSearchParams({university:'uos',major:'topic:dentistry',course:'topic:Programming',q:marker}),200);
+      assert.equal(wrong.items.length,0);
     });
     await t.test('seller cannot message self and buyers reuse their own thread',async()=>{
       await call('/messages',400,1,{listingId});
@@ -71,6 +94,7 @@ test('marketplace conversations, handover choices and catalog access', {skip: pr
       const key=process.env.STRIPE_SECRET_KEY;try{process.env.STRIPE_SECRET_KEY='sk_live_not_real';assert.equal(paymentClient(),null);}finally{if(key===undefined)delete process.env.STRIPE_SECRET_KEY;else process.env.STRIPE_SECRET_KEY=key;}
     });
   } finally {
+    for(const id of paperIds)await query('DELETE FROM past_papers WHERE id=?',[id]);
     for(const u of users)await query('DELETE FROM listing_conversations WHERE buyer_id=? OR seller_id=?',[u.id,u.id]);
     await query('DELETE FROM listings WHERE id=?',[listingId]);
     for(const u of users)await query('DELETE FROM users WHERE id=?',[u.id]);

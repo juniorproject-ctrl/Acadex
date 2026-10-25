@@ -151,13 +151,23 @@ router.patch('/:id', requireAuth, listingUpload.array('images', 5), asyncHandler
   if (listing.owner_id !== req.user!.id) throw new ApiError(403, 'You can only edit your own listings.');
   const orders=await rows(connection,"SELECT id FROM payment_orders WHERE kind='listing' AND reference_id=? AND status IN ('pending','paid')",[listing.id]);
   if(orders.length)throw new ApiError(409,'A reserved or purchased listing cannot be edited.');
-  const status = req.body.status === 'draft' ? 'DRAFT' : req.body.status === 'sold' ? 'SOLD' : 'ACTIVE';
+  const status = req.body.status === undefined ? listing.status : req.body.status === 'draft' ? 'DRAFT' : req.body.status === 'sold' ? 'SOLD' : 'ACTIVE';
   const data = listingInput({ ...listing, condition: listing.item_condition, ...req.body }, status === 'SOLD' ? 'DRAFT' : status);
   const files = (req.files as Express.Multer.File[] | undefined) || [];
-  const currentImages = await rows(connection,'SELECT listing_id, image_url FROM listing_images WHERE listing_id = ?', [listing.id]);
-  if (status === 'ACTIVE' && !files.length && !currentImages.length) throw new ApiError(400, 'Upload at least one image before publishing.');
+  const currentImages = await rows(connection,'SELECT listing_id, image_url FROM listing_images WHERE listing_id = ? ORDER BY position', [listing.id]);
+  let retained=currentImages.map(image=>image.image_url as string);
+  if(req.body.retainedImages!==undefined){
+    let parsed:unknown;
+    try{parsed=typeof req.body.retainedImages==='string'?JSON.parse(req.body.retainedImages):req.body.retainedImages;}catch{throw new ApiError(400,'Invalid image selection.');}
+    if(!Array.isArray(parsed)||parsed.some(url=>typeof url!=='string'||!retained.includes(url))||new Set(parsed).size!==parsed.length)throw new ApiError(400,'Choose only images belonging to this listing.');
+    retained=parsed;
+  }
+  if(retained.length+files.length>5)throw new ApiError(400,'A listing can have up to five photos.');
+  if (status === 'ACTIVE' && !files.length && !retained.length) throw new ApiError(400, 'Upload at least one image before publishing.');
   await connection.execute('UPDATE listings SET title = ?, description = ?, price = ?, category = ?, item_condition = ?, location = ?, status = ?, pickup_available=?, seller_delivery=? WHERE id = ?', [data.title, data.description, data.price, data.category, data.condition, data.location, status, data.pickupAvailable, data.sellerDelivery, listing.id]);
-  for (const [index, file] of files.entries()) await connection.execute('INSERT INTO listing_images (id, listing_id, image_url, position) VALUES (?, ?, ?, ?)', [crypto.randomUUID(), listing.id, imageUrl(file.filename), currentImages.length + index]);
+  for(const image of currentImages)if(!retained.includes(image.image_url))await connection.execute('DELETE FROM listing_images WHERE listing_id=? AND image_url=?',[listing.id,image.image_url]);
+  for(const [position,url] of retained.entries())await connection.execute('UPDATE listing_images SET position=? WHERE listing_id=? AND image_url=?',[position,listing.id,url]);
+  for (const [index, file] of files.entries()) await connection.execute('INSERT INTO listing_images (id, listing_id, image_url, position) VALUES (?, ?, ?, ?)', [crypto.randomUUID(), listing.id, imageUrl(file.filename), retained.length + index]);
   });
   const updated = await query<ListingRow[]>('SELECT l.*, u.name AS seller_name FROM listings l JOIN users u ON u.id = l.owner_id WHERE l.id = ?', [req.params.id]);
   return res.json({ listing: (await addImages(updated))[0] });

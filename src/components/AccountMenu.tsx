@@ -1,6 +1,6 @@
 import { useEffect,useRef,useState } from 'react';
 import { Link,useLocation,useNavigate } from 'react-router-dom';
-import { Accessibility,Bell,ChevronDown,CreditCard,GraduationCap,LayoutDashboard,LogOut,Settings,User,MessageCircle } from 'lucide-react';
+import { Accessibility,Bell,ChevronDown,CreditCard,GraduationCap,LayoutDashboard,LogOut,Settings,User,MessageCircle,ShoppingBag } from 'lucide-react';
 import { clearSession,getCurrentUser } from '../lib/auth';
 
 export default function AccountMenu() {
@@ -33,6 +33,7 @@ export default function AccountMenu() {
       <Link role="menuitem" to="/dashboard"><LayoutDashboard size={18}/>{user.role==='admin'?'Admin dashboard':user.role==='tutor'?'Tutor dashboard':user.role==='student'?'My Learning':'Dashboard'}</Link>
       <Link role="menuitem" to="/notifications"><Bell size={18}/>Notifications</Link>
       <Link role="menuitem" to="/messages"><MessageCircle size={18}/>Messages</Link>
+      <Link role="menuitem" to="/my-listings"><ShoppingBag size={18}/>My listings</Link>
       <Link role="menuitem" to="/payments"><CreditCard size={18}/>My payments</Link>
       <Link role="menuitem" to="/settings"><Settings size={18}/>Account settings</Link>
       <Link role="menuitem" to="/report"><Bell size={18}/>Report a problem</Link>
