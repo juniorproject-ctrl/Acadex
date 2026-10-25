@@ -9,6 +9,7 @@ import { httpsUrl, rows, teaching, text, transaction, verified } from './shared'
 const router = Router();
 router.get('/', asyncHandler(async (_req, res) => {
   const universities = await query<any[]>('SELECT * FROM universities ORDER BY name');
+  if (!universities.length) throw new ApiError(503, 'University filters are not set up yet. The administrator needs to run the database migrations and catalog import.');
   const majors = await query<any[]>('SELECT id, university_id AS universityId, name, source_url AS sourceUrl FROM majors ORDER BY name');
   const courses = await query<any[]>('SELECT id, university_id AS universityId, code, name, is_shared AS isShared, source_url AS sourceUrl FROM courses ORDER BY name');
   const links = await query<any[]>('SELECT course_id AS courseId, major_id AS majorId FROM course_majors');
