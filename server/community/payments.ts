@@ -19,7 +19,7 @@ async function offer(connection:PoolConnection,kind:string,reference:string){
   if(kind==='listing'){
     const [item]=await rows(connection,'SELECT * FROM listings WHERE id=? FOR UPDATE',[reference]);
     if(!item)throw new ApiError(404,'Listing not found.');
-    return {title:item.title,price:Number(item.price),seller:item.owner_id,available:item.status==='ACTIVE',buyer:null,pickupAvailable:!!item.pickup_available,sellerDelivery:!!item.seller_delivery};
+    return {title:item.title,price:Number(item.price),seller:item.owner_id,available:item.status==='ACTIVE'&&!item.is_hidden,buyer:null,pickupAvailable:!!item.pickup_available,sellerDelivery:!!item.seller_delivery};
   }
   if(kind==='booking'){
     const [ref]=await rows(connection,'SELECT slot_id FROM tutor_bookings WHERE id=?',[reference]);

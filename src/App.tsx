@@ -22,6 +22,9 @@ import Feedback from './pages/Feedback';
 import Messages from './pages/Messages';
 import ListingDetail from './pages/ListingDetail';
 import MyListings from './pages/MyListings';
+import MyReports from './pages/MyReports';
+import AdminConsole from './pages/AdminConsole';
+import InformationPage from './pages/InformationPage';
 import Notifications from './pages/Notifications';
 import CourseCatalog from './pages/CourseCatalog';
 import Settings from './pages/Settings';
@@ -57,6 +60,7 @@ export default function App() {
         <Route path="/signup" element={<SignUp />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/verify" element={<VerifyOTP />} />
+        {['help','contact','pricing-guide','safety-tips','terms-of-service','privacy-policy'].map(page=><Route key={page} path={'/'+page} element={<InformationPage page={page}/>}/>)}
 
         {/* Main App Routes */}
         <Route path="/home" element={<Layout><Home /></Layout>} />
@@ -67,6 +71,8 @@ export default function App() {
         <Route path="/listings/:id" element={<Layout><ListingDetail /></Layout>} />
         <Route path="/post" element={<Protected><Layout><PostListing /></Layout></Protected>} />
         <Route path="/my-listings" element={<Layout><MyListings /></Layout>} />
+        <Route path="/my-reports" element={<Layout><MyReports /></Layout>} />
+        <Route path="/admin" element={<Layout><AdminConsole /></Layout>} />
         <Route path="/community" element={<Layout><Community /></Layout>} />
         <Route path="/search" element={<Layout><Community search /></Layout>} />
         <Route path="/past-papers" element={<Layout><PastPapers /></Layout>} />

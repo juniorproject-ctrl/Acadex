@@ -5,6 +5,7 @@ import { query } from '../db';
 import { ApiError, asyncHandler } from '../errors';
 import { requireAuth, type AuthRequest } from '../middleware/auth';
 import { text, verified } from './shared';
+import {notifyAdminEmail} from '../email';
 
 const router = Router();
 router.post('/', rateLimit({ windowMs: 3600000, limit: 10 }), asyncHandler(async (req, res) => {
@@ -12,6 +13,7 @@ router.post('/', rateLimit({ windowMs: 3600000, limit: 10 }), asyncHandler(async
   const name = req.body.name ? text(req.body.name, 'Name', 1, 100) : '';
   const message = text(req.body.message, 'Comments', 10, 3000);
   await query('INSERT INTO feedback (id,name,category,message) VALUES (?,?,?,?)', [randomUUID(), name, req.body.category, message]);
+  await notifyAdminEmail('New user feedback');
   res.status(201).json({ ok: true });
 }));
 router.use(requireAuth, verified);

@@ -27,8 +27,8 @@ export default function Footer() {
               <li><Link to="/browse">Browse Listings</Link></li>
               <li><Link to="/post">Sell an Item</Link></li>
               <li><Link to="/browse">Categories</Link></li>
-              <li><Link to="/">Pricing Guide</Link></li>
-              <li><Link to="/">Safety Tips</Link></li>
+              <li><Link to="/pricing-guide">Pricing Guide</Link></li>
+              <li><Link to="/safety-tips">Safety Tips</Link></li>
             </ul>
           </div>
 
@@ -46,12 +46,12 @@ export default function Footer() {
           <div>
             <h4 className="text-brand-navy mb-6">Support</h4>
             <ul className="space-y-4 text-sm text-brand-light-navy">
-              <li><Link to="/">Help Center</Link></li>
-              <li><Link to="/">Contact Us</Link></li>
+              <li><Link to="/help">Help Center</Link></li>
+              <li><Link to="/contact">Contact Us</Link></li>
               <li><Link to="/feedback">Feedback</Link></li>
               <li><Link to="/report">Report an Issue</Link></li>
-              <li><Link to="/">Terms of Service</Link></li>
-              <li><Link to="/">Privacy Policy</Link></li>
+              <li><Link to="/terms-of-service">Terms of Service</Link></li>
+              <li><Link to="/privacy-policy">Privacy Policy</Link></li>
             </ul>
           </div>
         </div>

@@ -37,6 +37,8 @@ export default function AccountMenu() {
       <Link role="menuitem" to="/payments"><CreditCard size={18}/>My payments</Link>
       <Link role="menuitem" to="/settings"><Settings size={18}/>Account settings</Link>
       <Link role="menuitem" to="/report"><Bell size={18}/>Report a problem</Link>
+      <Link role="menuitem" to="/my-reports"><Bell size={18}/>My reports and replies</Link>
+      {user.role==='admin'&&<Link role="menuitem" to="/admin"><LayoutDashboard size={18}/>Website management</Link>}
       {user.role==='admin'?<Link role="menuitem" to="/admin/tutor-applications"><GraduationCap size={18}/>Tutor applications</Link>:<Link role="menuitem" to="/apply-tutor"><GraduationCap size={18}/>{user.role==='tutor'?'Tutor application':'Apply to tutor'}</Link>}
       <Link role="menuitem" to="/accessibility"><Accessibility size={18}/>Accessibility</Link>
       <button role="menuitem" onClick={()=>{clearSession();navigate('/');}}><LogOut size={18}/>Sign out</button>

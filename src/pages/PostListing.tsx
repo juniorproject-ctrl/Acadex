@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Camera, Plus, X } from 'lucide-react';
 import { api, type ApiListing } from '../lib/api';
 import {
@@ -296,7 +296,7 @@ export default function PostListing() {
           <div className="pt-8 flex flex-col md:flex-row items-center justify-between border-t border-gray-300">
             <label className="flex items-center text-[10px] text-brand-light-navy cursor-pointer mb-6 md:mb-0">
               <input type="checkbox" className="mr-2 rounded border-none bg-white" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} />
-              I agree to the <span className="underline ml-1">Terms of Service</span> and <span className="underline ml-1">Listing Guidelines</span>
+              I agree to the <Link to="/terms-of-service" className="underline ml-1">Terms of Service</Link> and <Link to="/safety-tips" className="underline ml-1">Listing Guidelines</Link>
             </label>
             <div className="flex space-x-4 w-full md:w-auto">
               <button type="button" onClick={() => void saveListing('draft')} className="flex-1 md:flex-none px-10 py-3 bg-[#A6B1C2] text-white font-bold rounded-lg hover:bg-gray-500 transition-colors">

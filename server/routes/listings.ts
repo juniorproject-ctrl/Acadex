@@ -34,6 +34,7 @@ async function addImages(listings: ListingRow[]) {
     return {
       id: listing.id,
       ownerId: listing.owner_id,
+      hidden: !!listing.is_hidden,
       title: listing.title,
       subtitle: listing.description.slice(0, 60),
       description: listing.description,
@@ -94,7 +95,7 @@ router.get('/', asyncHandler(async (req, res) => {
   const page = Math.max(1, Number(req.query.page) || 1);
   const limit = Math.min(50, Math.max(1, Number(req.query.limit) || 16));
   const sort = req.query.sort === 'price_asc' ? 'l.price ASC' : req.query.sort === 'price_desc' ? 'l.price DESC' : 'l.created_at DESC';
-  const clauses = ["l.status = 'ACTIVE'"];
+  const clauses = ["l.status = 'ACTIVE'","l.is_hidden=FALSE"];
   const values: unknown[] = [];
 
   if (search) { clauses.push('(l.title LIKE ? OR l.description LIKE ? OR l.location LIKE ? OR u.name LIKE ?)'); values.push(`%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`); }
@@ -114,7 +115,7 @@ router.get('/mine', requireAuth, asyncHandler(async (req: AuthRequest, res) => {
 }));
 
 router.get('/:id', asyncHandler(async (req, res) => {
-  const listings = await query<ListingRow[]>("SELECT l.*, u.name AS seller_name FROM listings l JOIN users u ON u.id = l.owner_id WHERE l.id = ? AND l.status = 'ACTIVE'", [req.params.id]);
+  const listings = await query<ListingRow[]>("SELECT l.*, u.name AS seller_name FROM listings l JOIN users u ON u.id = l.owner_id WHERE l.id = ? AND l.status = 'ACTIVE' AND l.is_hidden=FALSE", [req.params.id]);
   if (!listings[0]) throw new ApiError(404, 'Listing not found.');
   return res.json({ listing: (await addImages(listings))[0] });
 }));

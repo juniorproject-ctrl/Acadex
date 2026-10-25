@@ -4,6 +4,7 @@ export type ApiListing = {
   category: string; condition: string; location: string; status: 'draft' | 'active' | 'sold'; seller: string;
   image: string; images: string[]; createdAt: string; updatedAt: string;
   pickupAvailable: boolean; sellerDelivery: boolean;
+  hidden?: boolean;
 };
 
 const TOKEN_KEY = 'acadex_access_token';

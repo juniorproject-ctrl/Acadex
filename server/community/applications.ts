@@ -5,6 +5,7 @@ import { query } from '../db';
 import { ApiError,asyncHandler } from '../errors';
 import { requireAuth,type AuthRequest } from '../middleware/auth';
 import { notify,rows,text,transaction,university,userId,verified } from './shared';
+import {notifyAdminEmail} from '../email';
 
 const router=Router();
 const admin=(req:AuthRequest)=>{if(req.user?.role!=='admin')throw new ApiError(403,'Administrator access required.');};
@@ -40,6 +41,7 @@ router.post('/',rateLimit({windowMs:3600000,limit:10}),asyncHandler(async(req:Au
       await notify(connection,userId(req),'Your tutor application was submitted.','/apply-tutor');
     });
   }
+  await notifyAdminEmail('New tutor application');
   res.status(201).json({ok:true});
 }));
 router.patch('/:id/review',asyncHandler(async(req:AuthRequest,res)=>{

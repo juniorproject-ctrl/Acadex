@@ -5,6 +5,7 @@ import { query } from '../db';
 import { ApiError,asyncHandler } from '../errors';
 import { requireAuth,type AuthRequest } from '../middleware/auth';
 import { text,userId,verified,transaction,rows,notify } from './shared';
+import {notifyAdminEmail} from '../email';
 const router=Router();
 router.use(requireAuth,verified);
 router.post('/',rateLimit({windowMs:3600000,limit:20}),asyncHandler(async(req,res)=>{
@@ -12,11 +13,26 @@ router.post('/',rateLimit({windowMs:3600000,limit:20}),asyncHandler(async(req,re
  await transaction(async c=>{
   await c.execute('INSERT INTO reports (id,reporter_id,subject,details) VALUES (?,?,?,?)',[randomUUID(),userId(req),subject,details]);
   for(const a of await rows(c,"SELECT id FROM users WHERE role='admin' AND is_verified=TRUE"))await notify(c,a.id,'A new complaint needs review.','/dashboard');
- });res.status(201).json({ok:true});
+ });await notifyAdminEmail('New report');res.status(201).json({ok:true});
 }));
 router.get('/',asyncHandler(async(req:AuthRequest,res)=>{
  if(req.user?.role!=='admin')throw new ApiError(403,'Administrator access required.');
  res.json({items:await query("SELECT r.*,u.name AS reporter FROM reports r JOIN users u ON u.id=r.reporter_id ORDER BY r.created_at DESC LIMIT 100")});
+}));
+router.get('/mine',asyncHandler(async(req,res)=>{
+ const items=await query<any[]>('SELECT id,subject,details,status,created_at AS createdAt FROM reports WHERE reporter_id=? ORDER BY created_at DESC LIMIT 100',[userId(req)]);
+ const replies=await query<any[]>('SELECT rr.id,rr.report_id AS reportId,rr.body,rr.created_at AS createdAt,u.name AS author FROM report_replies rr JOIN reports r ON r.id=rr.report_id JOIN users u ON u.id=rr.author_id WHERE r.reporter_id=? ORDER BY rr.created_at',[userId(req)]);
+ res.json({items:items.map(item=>({...item,replies:replies.filter(reply=>reply.reportId===item.id)}))});
+}));
+router.post('/:id/reply',asyncHandler(async(req:AuthRequest,res)=>{
+ if(req.user?.role!=='admin')throw new ApiError(403,'Administrator access required.');
+ const body=text(req.body.body,'Reply',5,2000);
+ await transaction(async c=>{
+  const [report]=await rows(c,'SELECT reporter_id FROM reports WHERE id=? FOR UPDATE',[req.params.id]);
+  if(!report)throw new ApiError(404,'Report not found.');
+  await c.execute('INSERT INTO report_replies (id,report_id,author_id,body) VALUES (?,?,?,?)',[randomUUID(),req.params.id,userId(req),body]);
+  await notify(c,report.reporter_id,'An administrator replied to your report.','/my-reports');
+ });res.status(201).json({ok:true});
 }));
 router.patch('/:id',asyncHandler(async(req:AuthRequest,res)=>{
  if(req.user?.role!=='admin')throw new ApiError(403,'Administrator access required.');

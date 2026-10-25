@@ -2,10 +2,9 @@ import crypto from 'node:crypto';
 import bcrypt from 'bcrypt';
 import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
-import nodemailer from 'nodemailer';
+import {sendEmail} from '../email';
 import type { RowDataPacket } from 'mysql2';
 import { createAccessToken, publicUser, type AuthUser } from '../auth';
-import { config } from '../config';
 import { query } from '../db';
 import { ApiError, asyncHandler } from '../errors';
 import { requireAuth, type AuthRequest } from '../middleware/auth';
@@ -25,37 +24,10 @@ function sixDigitCode() {
 async function sendVerificationEmail(name: string, email: string, code: string, reset=false) {
   const subject=reset?'Reset your Acadex password':'Your Acadex verification code';
   const text=reset?`Hello ${name}, your Acadex password reset code is ${code}. It expires in 10 minutes. If you did not request this, ignore this email.`:`Hello ${name}, your Acadex verification code is ${code}. It expires in 10 minutes.`;
-  if(process.env.RESEND_API_KEY){
-    if(!process.env.MAIL_FROM)throw new ApiError(503,'Configure MAIL_FROM with your verified email sender.');
-    const response=await fetch('https://api.resend.com/emails',{
-      method:'POST',signal:AbortSignal.timeout(10000),
-      headers:{Authorization:'Bearer '+process.env.RESEND_API_KEY,'Content-Type':'application/json'},
-      body:JSON.stringify({from:process.env.MAIL_FROM,to:[email],subject,text}),
-    });
-    if(!response.ok)throw new ApiError(503,'The email provider could not send your verification code. Check the sender configuration.');
-    return;
-  }
-  const { host, port, user, pass, from } = config.smtp;
-  if (!host || !user || !pass || !from) throw new ApiError(503, 'Email verification is not configured on the server.');
-
-  const transporter = nodemailer.createTransport({
-    host,
-    port,
-    secure: port === 465,
-    auth: { user, pass },
-    connectionTimeout: 10_000,
-    greetingTimeout: 10_000,
-  });
-
-  await transporter.sendMail({
-    from,
-    to: email,
-    subject,
-    text,
-  });
+  await sendEmail(email,subject,text);
 }
 
-async function issueOtp(user: UserRow) {
+export async function issueOtp(user: UserRow) {
   if (user.last_otp_sent_at && Date.now() - user.last_otp_sent_at.getTime() < 60_000) {
     throw new ApiError(429, 'Please wait one minute before requesting another verification code.');
   }
@@ -75,6 +47,7 @@ router.post('/register', otpLimiter, asyncHandler(async (req, res) => {
   const { name, email, password, role } = validateRegistration(req.body);
   const users = await query<UserRow[]>('SELECT id, name, email, role, session_version, password_hash, is_verified, last_otp_sent_at FROM users WHERE email = ?', [email]);
   let user = users[0];
+  if(user?.role==='admin')throw new ApiError(409,'This email is reserved for an administrator. Sign in or use password recovery.');
 
   if (user?.is_verified) throw new ApiError(409, 'An account with this email already exists. Please sign in instead.');
 
@@ -133,7 +106,9 @@ router.post('/login', loginLimiter, asyncHandler(async (req, res) => {
   const { email, password } = validateLogin(req.body);
   const users = await query<UserRow[]>('SELECT id, name, email, role, session_version, password_hash, is_verified, last_otp_sent_at FROM users WHERE email = ?', [email]);
   const user = users[0];
-  if (!user || !(await bcrypt.compare(password, user.password_hash))) throw new ApiError(401, 'Invalid email or password.');
+  if (!user || !user.password_hash || !(await bcrypt.compare(password, user.password_hash))) throw new ApiError(401, 'Invalid email or password.');
+  const [access]=await query<any[]>('SELECT is_suspended,deleted_at FROM users WHERE id=?',[user.id]);
+  if(access?.is_suspended||access?.deleted_at)throw new ApiError(403,'This account is unavailable. Contact support.');
   if (!user.is_verified) throw new ApiError(403, 'Verify your email before signing in.');
   return res.json({ token: createAccessToken(user), user: publicUser(user) });
 }));

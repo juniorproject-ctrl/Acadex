@@ -3,9 +3,11 @@ import { query } from '../db';
 import { asyncHandler } from '../errors';
 import { requireAuth } from '../middleware/auth';
 import { notify, rows, text, transaction, userId, verified } from './shared';
+import accountSecurity from './accountSecurity';
 
 const router = Router();
 router.use(requireAuth,verified);
+router.use('/security',accountSecurity);
 router.patch('/profile', asyncHandler(async (req,res) => {
   const name = text(req.body.name,'Name',2,100);
   await query('UPDATE users SET name=? WHERE id=?',[name,userId(req)]);

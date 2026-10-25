@@ -6,7 +6,7 @@ import { ApiError, asyncHandler } from '../errors';
 import type { AuthRequest } from '../middleware/auth';
 
 export const verified = asyncHandler(async (req: AuthRequest, _res, next) => {
-  const [user] = await query<any[]>('SELECT id, name, email, role FROM users WHERE id = ? AND is_verified = TRUE', [req.user?.id]);
+  const [user] = await query<any[]>('SELECT id, name, email, role FROM users WHERE id = ? AND is_verified = TRUE AND deleted_at IS NULL AND is_suspended=FALSE', [req.user?.id]);
   if (!user) throw new ApiError(401, 'Please sign in with a verified account.');
   req.user = user;
   next();

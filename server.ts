@@ -20,11 +20,15 @@ import applicationRoutes from './server/community/applications';
 import reportRoutes from './server/community/reports';
 import feedbackRoutes from './server/community/feedback';
 import messageRoutes from './server/community/messages';
+import adminRoutes from './server/community/admin';
+import supportRoutes from './server/community/support';
+import { bootstrapAdmin } from './server/bootstrapAdmin';
 import { requireAuth } from './server/middleware/auth';
 import { verified } from './server/community/shared';
 import paymentRoutes,{paymentWebhook} from './server/community/payments';
 
 async function startServer() {
+  await bootstrapAdmin();
   const app = express();
   const allowedOrigins = config.frontendOrigin.split(',').map((origin) => origin.trim()).filter(Boolean);
 
@@ -61,6 +65,8 @@ async function startServer() {
   app.use('/api/reports', reportRoutes);
   app.use('/api/feedback', feedbackRoutes);
   app.use('/api/messages', messageRoutes);
+  app.use('/api/admin',adminRoutes);
+  app.use('/api/support',supportRoutes);
   app.use('/api/payments', paymentRoutes);
   app.use('/api', notFound);
 

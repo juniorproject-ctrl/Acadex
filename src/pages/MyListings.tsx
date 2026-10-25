@@ -12,7 +12,7 @@ export default function MyListings(){
   return <div className="community-page"><header className="community-heading"><h1>My listings</h1><Link className="action-button" to="/post"><Plus size={18}/>New listing</Link></header><ErrorBox error={result.error}/>
     {result.loading?<Empty>Loading your listings...</Empty>:result.data?.listings.length?<div className="community-grid">{result.data.listings.map(listing=><article key={listing.id} className="community-card">
       {listing.image&&<img src={listing.image} alt={listing.title} className="w-full h-48 object-cover rounded"/>}
-      <h2>{listing.status==='active'?<Link to={'/listings/'+listing.id}>{listing.title}</Link>:listing.title}</h2><p>AED {listing.price.toFixed(2)}</p><span className="status-badge">{listing.status}</span>
+      <h2>{listing.status==='active'&&!listing.hidden?<Link to={'/listings/'+listing.id}>{listing.title}</Link>:listing.title}</h2><p>AED {listing.price.toFixed(2)}</p><span className="status-badge">{listing.hidden?"Hidden by moderation":listing.status}</span>
       <ListingActions listing={listing}/>
     </article>)}</div>:!result.error&&<Empty>You have no listings yet.</Empty>}
   </div>;
