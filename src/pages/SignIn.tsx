@@ -50,7 +50,6 @@ export default function SignIn() {
           </div>
           <button type="submit" disabled={loading} className="w-full btn-primary mt-4">{loading ? 'Signing in...' : 'Sign In'}</button>
           <p className="text-center text-brand-cream text-sm"><Link to="/forgot-password" className="font-bold underline">Forgot password?</Link></p>
-          <p className="text-center text-brand-cream text-sm"><Link to="/verify" state={{email}} className="font-bold underline">Verify email</Link></p>
           <p className="text-center text-brand-cream text-sm mt-8">Don&apos;t have an account yet? <Link to="/signup" className="font-bold underline">Create Account</Link></p>
         </form>
       </motion.div>
