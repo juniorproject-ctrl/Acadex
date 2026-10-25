@@ -1,5 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Bell, Menu, X } from 'lucide-react';
+import { Bell, Menu, X, MessageCircle } from 'lucide-react';
+import type { Inbox } from '../pages/Messages';
 import { useEffect, useState } from 'react';
 import { useResource, type NotificationData } from '../lib/community';
 import BrandLogo from './BrandLogo';
@@ -14,6 +15,8 @@ export default function Navigation() {
   useEffect(()=>{if(!getCurrentUser())return;let active=true;api.me().then(({user})=>{if(active){setCurrentUser(user);updateSessionUser(user);}}).catch(()=>{});return()=>{active=false;};},[location.pathname]);
   const [menu,setMenu] = useState(false);
   const notifications = useResource<NotificationData>(currentUser ? '/account/notifications' : null, 30000);
+  const inbox = useResource<Inbox>(currentUser ? '/messages' : null, 10000);
+  const unread = inbox.data?.items.reduce((sum,item)=>sum+Number(item.unread),0) || 0;
   useEffect(()=>{setMenu(false);},[location.pathname]);
   useEffect(()=>{const reload=notifications.reload;window.addEventListener('acadex-notifications',reload);return()=>window.removeEventListener('acadex-notifications',reload);},[notifications.reload]);
 
@@ -37,6 +40,7 @@ export default function Navigation() {
           </div>
 
           <div className="flex items-center gap-2">
+            {currentUser&&<Link to="/messages" className="icon-button relative" title="Messages" aria-label={`Messages, ${unread} unread`}><MessageCircle size={21}/>{unread>0&&<span className="notification-count">{unread>99?'99+':unread}</span>}</Link>}
             {currentUser&&<Link to="/notifications" className="icon-button relative" title="Notifications" aria-label={`Notifications, ${notifications.data?.unread||0} unread`}><Bell size={21}/>{!!notifications.data?.unread&&<span className="notification-count">{notifications.data.unread>99?'99+':notifications.data.unread}</span>}</Link>}
             <button className="icon-button mobile-menu-button" aria-label="Toggle navigation" aria-expanded={menu} onClick={()=>setMenu(!menu)}>{menu?<X size={21}/>:<Menu size={21}/>}</button>
             {currentUser&&<AccountMenu/>}

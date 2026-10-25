@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Search, BookOpen, FileText, Users, Monitor, PenTool, Calendar, MoreHorizontal } from 'lucide-react';
 import { motion } from 'motion/react';
 import { api, type ApiListing } from '../lib/api';
@@ -91,7 +91,7 @@ export default function Home() {
                   {item.image && <img src={item.image} alt={item.title} className="h-full w-full object-cover object-center" />}
                 </div>
                 <div className="flex min-h-[13rem] flex-1 flex-col p-5">
-                  <h3 className="text-sm font-bold text-brand-navy line-clamp-2 mb-1">{item.title}</h3>
+                  <h3 className="text-sm font-bold text-brand-navy line-clamp-2 mb-1"><Link to={"/listings/"+item.id}>{item.title}</Link></h3>
                   <p className="text-[10px] text-gray-500 mb-2">{item.condition} • {item.location}</p>
                   <p className="text-lg font-bold text-brand-navy mt-auto">AED {item.price}</p>
                   <div className="flex items-center mt-3 pt-3 border-t border-gray-100">

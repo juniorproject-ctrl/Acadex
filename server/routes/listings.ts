@@ -41,6 +41,8 @@ async function addImages(listings: ListingRow[]) {
       category: listing.category || 'Supplies',
       condition: listing.item_condition || 'Good',
       location: listing.location || '',
+      pickupAvailable: !!listing.pickup_available,
+      sellerDelivery: !!listing.seller_delivery,
       status: listing.status.toLowerCase(),
       seller: listing.seller_name,
       image: listingImages[0] || '',
@@ -58,6 +60,10 @@ function listingInput(body: Record<string, unknown>, status: 'DRAFT' | 'ACTIVE')
   const category = typeof body.category === 'string' ? body.category : '';
   const condition = typeof body.condition === 'string' ? body.condition : '';
   const location = typeof body.location === 'string' ? body.location.trim() : '';
+  const flag = (value: unknown) => value === true || value === 1 || value === 'true';
+  const pickupAvailable = body.pickupAvailable === undefined ? flag(body.pickup_available ?? true) : flag(body.pickupAvailable);
+  const sellerDelivery = body.sellerDelivery === undefined ? flag(body.seller_delivery) : flag(body.sellerDelivery);
+  if (status === 'ACTIVE' && !pickupAvailable && !sellerDelivery) throw new ApiError(400, 'Choose pickup, seller delivery, or both.');
 
   if (status === 'ACTIVE') {
     if (!title || !description || !location || !Number.isFinite(price) || price < 0) throw new ApiError(400, 'Title, description, price, and location are required.');
@@ -72,6 +78,8 @@ function listingInput(body: Record<string, unknown>, status: 'DRAFT' | 'ACTIVE')
     category: validCategories.includes(category) ? category : null,
     condition: validConditions.includes(condition) ? condition : null,
     location,
+    pickupAvailable,
+    sellerDelivery,
   };
 }
 
@@ -121,7 +129,7 @@ router.post('/', requireAuth, listingUpload.array('images', 5), asyncHandler(asy
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
-    await connection.execute('INSERT INTO listings (id, owner_id, title, description, price, category, item_condition, location, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', [id, req.user!.id, data.title, data.description, data.price, data.category, data.condition, data.location, status]);
+    await connection.execute('INSERT INTO listings (id, owner_id, title, description, price, category, item_condition, location, status, pickup_available, seller_delivery) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [id, req.user!.id, data.title, data.description, data.price, data.category, data.condition, data.location, status, data.pickupAvailable, data.sellerDelivery]);
     for (const [position, file] of files.entries()) {
       await connection.execute('INSERT INTO listing_images (id, listing_id, image_url, position) VALUES (?, ?, ?, ?)', [crypto.randomUUID(), id, imageUrl(file.filename), position]);
     }
@@ -144,11 +152,11 @@ router.patch('/:id', requireAuth, listingUpload.array('images', 5), asyncHandler
   const orders=await rows(connection,"SELECT id FROM payment_orders WHERE kind='listing' AND reference_id=? AND status IN ('pending','paid')",[listing.id]);
   if(orders.length)throw new ApiError(409,'A reserved or purchased listing cannot be edited.');
   const status = req.body.status === 'draft' ? 'DRAFT' : req.body.status === 'sold' ? 'SOLD' : 'ACTIVE';
-  const data = listingInput({ ...listing, ...req.body }, status === 'SOLD' ? 'DRAFT' : status);
+  const data = listingInput({ ...listing, condition: listing.item_condition, ...req.body }, status === 'SOLD' ? 'DRAFT' : status);
   const files = (req.files as Express.Multer.File[] | undefined) || [];
   const currentImages = await rows(connection,'SELECT listing_id, image_url FROM listing_images WHERE listing_id = ?', [listing.id]);
   if (status === 'ACTIVE' && !files.length && !currentImages.length) throw new ApiError(400, 'Upload at least one image before publishing.');
-  await connection.execute('UPDATE listings SET title = ?, description = ?, price = ?, category = ?, item_condition = ?, location = ?, status = ? WHERE id = ?', [data.title, data.description, data.price, data.category, data.condition, data.location, status, listing.id]);
+  await connection.execute('UPDATE listings SET title = ?, description = ?, price = ?, category = ?, item_condition = ?, location = ?, status = ?, pickup_available=?, seller_delivery=? WHERE id = ?', [data.title, data.description, data.price, data.category, data.condition, data.location, status, data.pickupAvailable, data.sellerDelivery, listing.id]);
   for (const [index, file] of files.entries()) await connection.execute('INSERT INTO listing_images (id, listing_id, image_url, position) VALUES (?, ?, ?, ?)', [crypto.randomUUID(), listing.id, imageUrl(file.filename), currentImages.length + index]);
   });
   const updated = await query<ListingRow[]>('SELECT l.*, u.name AS seller_name FROM listings l JOIN users u ON u.id = l.owner_id WHERE l.id = ?', [req.params.id]);

@@ -19,6 +19,9 @@ import accountRoutes from './server/community/account';
 import applicationRoutes from './server/community/applications';
 import reportRoutes from './server/community/reports';
 import feedbackRoutes from './server/community/feedback';
+import messageRoutes from './server/community/messages';
+import { requireAuth } from './server/middleware/auth';
+import { verified } from './server/community/shared';
 import paymentRoutes,{paymentWebhook} from './server/community/payments';
 
 async function startServer() {
@@ -46,6 +49,7 @@ async function startServer() {
     }
   });
   app.use('/api/auth', authRoutes);
+  app.use(['/api/listings', '/api/catalog', '/api/papers', '/api/groups', '/api/tutors', '/api/events'], requireAuth, verified);
   app.use('/api/listings', listingRoutes);
   app.use('/api/catalog', catalogRoutes);
   app.use('/api/papers', paperRoutes);
@@ -56,6 +60,7 @@ async function startServer() {
   app.use('/api/tutor-applications', applicationRoutes);
   app.use('/api/reports', reportRoutes);
   app.use('/api/feedback', feedbackRoutes);
+  app.use('/api/messages', messageRoutes);
   app.use('/api/payments', paymentRoutes);
   app.use('/api', notFound);
 

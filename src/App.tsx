@@ -19,6 +19,8 @@ import Events, { EventDetail } from './pages/Events';
 import Dashboard from './pages/Dashboard';
 import ReportForm from './pages/Reports';
 import Feedback from './pages/Feedback';
+import Messages from './pages/Messages';
+import ListingDetail from './pages/ListingDetail';
 import Notifications from './pages/Notifications';
 import CourseCatalog from './pages/CourseCatalog';
 import Settings from './pages/Settings';
@@ -29,13 +31,13 @@ import { applyAccessibility } from './lib/accessibility';
 // Layout wrapper for pages that show Nav and Footer
 function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen flex flex-col bg-background-soft">
+    <Protected><div className="min-h-screen flex flex-col bg-background-soft">
       <Navigation />
       <main className="flex-grow">
         {children}
       </main>
       <Footer />
-    </div>
+    </div></Protected>
   );
 }
 
@@ -57,8 +59,11 @@ export default function App() {
 
         {/* Main App Routes */}
         <Route path="/home" element={<Layout><Home /></Layout>} />
-        <Route path="/feedback" element={<Layout><Feedback /></Layout>} />
+        <Route path="/feedback" element={<Feedback />} />
+        <Route path="/messages" element={<Layout><Messages /></Layout>} />
+        <Route path="/messages/:id" element={<Layout><Messages /></Layout>} />
         <Route path="/browse" element={<Layout><Browse /></Layout>} />
+        <Route path="/listings/:id" element={<Layout><ListingDetail /></Layout>} />
         <Route path="/post" element={<Protected><Layout><PostListing /></Layout></Protected>} />
         <Route path="/community" element={<Layout><Community /></Layout>} />
         <Route path="/search" element={<Layout><Community search /></Layout>} />

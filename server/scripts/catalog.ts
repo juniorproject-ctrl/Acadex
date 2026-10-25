@@ -2,6 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { load } from 'cheerio';
 import { pool } from '../db';
+import { starterSubjects, starterUniversities } from '../data/starter-catalog';
 
 type Major = {id:string;name:string;sourceUrl:string;courses:{code:string;name:string;isShared:boolean}[]};
 const snapshotPath = path.resolve('server/data/sharjah-catalog.json');
@@ -53,8 +54,23 @@ async function main() {
         await connection.execute('INSERT IGNORE INTO course_majors (course_id,major_id) VALUES (?,?)',[id,major.id]);
       }
     }
+    for (const institution of starterUniversities) {
+      await connection.execute('INSERT INTO universities (id,name,website) VALUES (?,?,?) ON DUPLICATE KEY UPDATE name=VALUES(name),website=VALUES(website)', [institution.id,institution.name,institution.website]);
+      for (const [slug,name,topics] of starterSubjects) {
+        if (!institution.areas.includes(slug)) continue;
+        // Existing published Sharjah programmes stay intact; starter topics have separate IDs.
+        const majorId = institution.id+'-basic-'+slug;
+        await connection.execute('INSERT IGNORE INTO majors (id,university_id,name,source_url) VALUES (?,?,?,?)', [majorId,institution.id,name,'']);
+        for (const [index,topic] of topics.entries()) {
+          const code = 'BASIC-'+slug.toUpperCase()+(index+1);
+          const courseId = institution.id+'-'+code;
+          await connection.execute('INSERT IGNORE INTO courses (id,university_id,code,name,is_shared,source_url) VALUES (?,?,?,?,FALSE,?)', [courseId,institution.id,code,topic,'']);
+          await connection.execute('INSERT IGNORE INTO course_majors (course_id,major_id) VALUES (?,?)', [courseId,majorId]);
+        }
+      }
+    }
     await connection.commit();
-    console.log(`Imported ${snapshot.majors.length} published programmes. No exam documents or accounts were created.`);
+    console.log(`Imported ${snapshot.majors.length} published programmes and starter filter topics for four universities. No exam documents or accounts were created.`);
   } catch(error) {await connection.rollback();throw error;}
   finally {connection.release();await pool.end();}
 }

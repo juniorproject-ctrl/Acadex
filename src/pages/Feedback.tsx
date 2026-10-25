@@ -1,10 +1,13 @@
 import { Send } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import BrandLogo from '../components/BrandLogo';
 import { ActionStatus, Empty, ErrorBox, Field, useAction } from '../components/CommunityUI';
 import { formValues, mutate, useResource } from '../lib/community';
 
 export default function Feedback() {
   const action = useAction();
-  return <div className="community-page max-w-2xl">
+  return <div className="community-page" style={{maxWidth: 672}}>
+    <div className="mb-8"><BrandLogo size="sm" /></div>
     <header className="community-heading"><h1>Share your feedback</h1></header>
     <form className="editor-form" onSubmit={e => {
       e.preventDefault();
@@ -18,6 +21,7 @@ export default function Feedback() {
       <button type="submit" className="action-button" disabled={action.busy}><Send size={18} />{action.busy ? 'Sending...' : 'Send feedback'}</button>
       <ActionStatus action={action} />
     </form>
+    <Link to="/" className="text-link">Back to sign in</Link>
   </div>;
 }
 

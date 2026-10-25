@@ -68,6 +68,8 @@ test('private tutor applications and test-payment lifecycle',{skip:process.env.C
     await t.test('server prices, reservations, signatures and duplicate events',async()=>{
       await expect('/payments/checkout',null,401,{kind:'listing',reference:listing});
       await expect('/payments/checkout',3,400,{kind:'listing',reference:listing});
+      await expect('/payments/checkout',0,400,{kind:'listing',reference:listing,handover:'seller_delivery'});
+      await expect('/payments/checkout',0,400,{kind:'listing',reference:listing,handover:'courier'});
       const checkout=await expect('/payments/checkout',0,200,{kind:'listing',reference:listing,amount:1});
       const again=await expect('/payments/checkout',0,200,{kind:'listing',reference:listing});assert.equal(checkout.orderId,again.orderId);assert.equal(sessions.size,1);
       await expect('/payments/checkout',1,409,{kind:'listing',reference:listing});
@@ -82,6 +84,7 @@ test('private tutor applications and test-payment lifecycle',{skip:process.env.C
       const eventId='evt_'+randomUUID();assert.equal((await webhook(session,undefined,eventId)).status,200);assert.equal((await webhook(session,undefined,eventId)).status,200);
       assert.equal((await webhook({...session,status:'expired',payment_status:'unpaid'},'checkout.session.expired')).status,200);
       const [order]=await query<any[]>('SELECT * FROM payment_orders WHERE id=?',[checkout.orderId]);assert.equal(order.status,'paid');
+      assert.equal(order.handover_method,'pickup');
       const [item]=await query<any[]>('SELECT status FROM listings WHERE id=?',[listing]);assert.equal(item.status,'SOLD');
       assert.equal((await webhook(charge,'charge.refunded',refundEvent)).status,200);
       const [refunded]=await query<any[]>('SELECT status FROM payment_orders WHERE id=?',[checkout.orderId]);assert.equal(refunded.status,'refunded');

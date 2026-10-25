@@ -19,7 +19,7 @@ async function offer(connection:PoolConnection,kind:string,reference:string){
   if(kind==='listing'){
     const [item]=await rows(connection,'SELECT * FROM listings WHERE id=? FOR UPDATE',[reference]);
     if(!item)throw new ApiError(404,'Listing not found.');
-    return {title:item.title,price:Number(item.price),seller:item.owner_id,available:item.status==='ACTIVE',buyer:null};
+    return {title:item.title,price:Number(item.price),seller:item.owner_id,available:item.status==='ACTIVE',buyer:null,pickupAvailable:!!item.pickup_available,sellerDelivery:!!item.seller_delivery};
   }
   if(kind==='booking'){
     const [ref]=await rows(connection,'SELECT slot_id FROM tutor_bookings WHERE id=?',[reference]);
@@ -92,19 +92,21 @@ export function createPaymentRouter(provider=paymentClient){
   router.get('/config',(_req,res)=>res.json({configured:!!provider(),mode:'test',methods:['Visa','Mastercard','Apple Pay','Google Pay']}));
   router.use(requireAuth,verified);
   router.get('/offer',asyncHandler(async(req,res)=>{
-    const item=await transaction(connection=>offer(connection,String(req.query.kind),String(req.query.reference)));checkOffer(item,userId(req));res.json({title:item.title,amount:item.price,currency:'AED'});
+    const item=await transaction(connection=>offer(connection,String(req.query.kind),String(req.query.reference)));checkOffer(item,userId(req));res.json({title:item.title,amount:item.price,currency:'AED',pickupAvailable:'pickupAvailable' in item&&item.pickupAvailable,sellerDelivery:'sellerDelivery' in item&&item.sellerDelivery});
   }));
   router.get('/orders',asyncHandler(async(req,res)=>{
-    const items=await query<any[]>('SELECT id,buyer_id AS buyerId,seller_id AS sellerId,kind,reference_id AS referenceId,title,amount_minor AS amountMinor,currency,status,created_at AS createdAt FROM payment_orders WHERE buyer_id=? OR seller_id=? ORDER BY created_at DESC LIMIT 100',[userId(req),userId(req)]);res.json({items});
+    const items=await query<any[]>('SELECT id,buyer_id AS buyerId,seller_id AS sellerId,kind,reference_id AS referenceId,title,amount_minor AS amountMinor,currency,status,handover_method AS handoverMethod,created_at AS createdAt FROM payment_orders WHERE buyer_id=? OR seller_id=? ORDER BY created_at DESC LIMIT 100',[userId(req),userId(req)]);res.json({items});
   }));
   router.post('/checkout',rateLimit({windowMs:60000,limit:10}),asyncHandler(async(req,res)=>{
     const client=requiredClient(provider),kind=String(req.body.kind),reference=String(req.body.reference);
     const order=await transaction(async connection=>{
       const item=await offer(connection,kind,reference);checkOffer(item,userId(req));
+      const handover = kind==='listing' ? String(req.body.handover || ('pickupAvailable' in item && item.pickupAvailable ? 'pickup' : 'seller_delivery')) : null;
+      if(kind==='listing' && ((handover!=='pickup'&&handover!=='seller_delivery') || (handover==='pickup' && !('pickupAvailable' in item&&item.pickupAvailable)) || (handover==='seller_delivery' && !('sellerDelivery' in item&&item.sellerDelivery))))throw new ApiError(400,'Choose a handover option offered by the seller.');
       const active=await rows(connection,"SELECT * FROM payment_orders WHERE kind=? AND reference_id=? AND status IN ('pending','paid') FOR UPDATE",[kind,reference]);
-      if(active.length){if(active[0].buyer_id===userId(req)&&active[0].status==='pending')return active[0];throw new ApiError(409,'This item is already paid for or reserved by another checkout.');}
+      if(active.length){if(active[0].buyer_id===userId(req)&&active[0].status==='pending'){if(active[0].handover_method&&active[0].handover_method!==handover)throw new ApiError(409,'Cancel your existing checkout before changing the handover option.');return active[0];}throw new ApiError(409,'This item is already paid for or reserved by another checkout.');}
       const id=randomUUID(),expires=new Date(Date.now()+31*60000),amount=Math.round(item.price*100);
-      await connection.execute('INSERT INTO payment_orders (id,buyer_id,seller_id,kind,reference_id,title,amount_minor,expires_at) VALUES (?,?,?,?,?,?,?,?)',[id,userId(req),item.seller,kind,reference,item.title,amount,expires]);
+      await connection.execute('INSERT INTO payment_orders (id,buyer_id,seller_id,kind,reference_id,title,amount_minor,expires_at,handover_method) VALUES (?,?,?,?,?,?,?,?,?)',[id,userId(req),item.seller,kind,reference,item.title,amount,expires,handover]);
       return {id,title:item.title,amount_minor:amount,expires_at:expires,checkout_session_id:null};
     });
     const origin=config.frontendOrigin.split(',')[0].trim();

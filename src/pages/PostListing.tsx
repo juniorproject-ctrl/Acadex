@@ -19,6 +19,8 @@ export default function PostListing() {
   const [condition, setCondition] = useState<ListingCondition | ''>('');
   const [description, setDescription] = useState('');
   const [location, setLocation] = useState('');
+  const [pickupAvailable, setPickupAvailable] = useState(true);
+  const [sellerDelivery, setSellerDelivery] = useState(false);
   const [agreed, setAgreed] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -41,6 +43,8 @@ export default function PostListing() {
     setCondition(draft.condition as ListingCondition);
     setDescription(draft.description);
     setLocation(draft.location);
+    setPickupAvailable(draft.pickupAvailable);
+    setSellerDelivery(draft.sellerDelivery);
     setImages(draft.images.map((preview) => ({ preview })));
     setSuccess('Draft loaded. You can continue editing it.');
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -89,6 +93,12 @@ export default function PostListing() {
     }
 
     const formData = new FormData();
+    if (status === 'active' && !pickupAvailable && !sellerDelivery) {
+      setError('Choose pickup, seller delivery, or both.');
+      return;
+    }
+    formData.append('pickupAvailable', String(pickupAvailable));
+    formData.append('sellerDelivery', String(sellerDelivery));
     formData.append('status', status);
     formData.append('title', title);
     formData.append('price', price);
@@ -242,15 +252,15 @@ export default function PostListing() {
               <input type="text" placeholder="City / Emirate" className="w-full bg-white border-none rounded-lg p-3 text-sm" value={location} onChange={(e) => setLocation(e.target.value)} />
             </div>
             <div className="space-y-4">
-              <label className="text-sm font-bold text-brand-navy block">Delivery Options</label>
+              <span className="text-sm font-bold text-brand-navy block">Handover Options</span>
               <div className="space-y-3">
                 <label className="flex items-center text-xs font-bold text-brand-navy cursor-pointer">
-                  <input type="checkbox" className="mr-3 rounded border-none bg-white w-4 h-4 shadow-sm" defaultChecked />
-                  Local Pickup
+                  <input type="checkbox" className="mr-3 rounded border-none bg-white w-4 h-4 shadow-sm" checked={pickupAvailable} onChange={e => setPickupAvailable(e.target.checked)} />
+                  Buyer can pick up
                 </label>
                 <label className="flex items-center text-xs font-bold text-brand-navy cursor-pointer">
-                  <input type="checkbox" className="mr-3 rounded border-none bg-white w-4 h-4 shadow-sm" />
-                  Shipping Available
+                  <input type="checkbox" className="mr-3 rounded border-none bg-white w-4 h-4 shadow-sm" checked={sellerDelivery} onChange={e => setSellerDelivery(e.target.checked)} />
+                  I can deliver the item myself
                 </label>
               </div>
             </div>
