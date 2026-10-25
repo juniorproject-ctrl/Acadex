@@ -4,6 +4,7 @@ import { ActionStatus,CommunityPage,Field,Submit,useAction } from '../components
 import { getCurrentUser,updateSessionUser } from '../lib/auth';
 import { request,type SessionUser } from '../lib/api';
 import { defaults,readAccessibility,saveAccessibility } from '../lib/accessibility';
+import SecuritySettings from '../components/SecuritySettings';
 
 export default function Settings({accessibilityOnly=false}:{accessibilityOnly?:boolean}) {
   const user=getCurrentUser(),action=useAction(),location=useLocation();
@@ -20,6 +21,7 @@ export default function Settings({accessibilityOnly=false}:{accessibilityOnly?:b
       <Field label="Account role"><input value={user?.role==='leader'?'Study group leader':user?.role||''} readOnly/></Field>
       <Submit busy={action.busy}>Save changes</Submit><ActionStatus action={action}/>
     </form>}
+    {!accessibilityOnly&&<SecuritySettings/>}
     {accessibilityOnly&&<section id="accessibility" className="detail-section settings-form" tabIndex={-1}>
       <h2>Accessibility</h2>
       {([['largeText','Larger text'],['highContrast','High contrast'],['reducedMotion','Reduce motion']] as const).map(([key,label])=><label className="preference-row" key={key}><span>{label}</span><input type="checkbox" checked={preferences[key]} onChange={e=>{const next={...preferences,[key]:e.target.checked};setPreferences(next);saveAccessibility(next);}}/></label>)}

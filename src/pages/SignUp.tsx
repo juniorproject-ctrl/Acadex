@@ -46,6 +46,7 @@ export default function SignUp() {
           <p className="text-center text-brand-cream text-sm mt-8">Already have an account? <Link to="/" className="font-bold underline">Log in</Link></p>
         </form>
       </motion.div>
+      <div className="flex flex-wrap justify-center gap-4 mt-4 text-sm"><Link to="/terms-of-service" className="text-link">Terms of service</Link><Link to="/privacy-policy" className="text-link">Privacy policy</Link><Link to="/contact" className="text-link">Contact us</Link></div>
     </div>
   );
 }
