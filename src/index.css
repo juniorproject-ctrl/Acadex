@@ -36,6 +36,11 @@
 .nav-link {
   @apply text-brand-navy font-medium hover:text-brand-light-navy transition-colors;
 }
+.listing-card { position:relative; isolation:isolate; }
+.listing-card-link::after { content:""; position:absolute; inset:0; z-index:1; border-radius:8px; }
+.listing-card-link:focus-visible { outline:none; }
+.listing-card-link:focus-visible::after { outline:2px solid #2d4b69; outline-offset:-2px; }
+.listing-card :is(a,button,input,select,textarea):not(.listing-card-link) { position:relative; z-index:2; }
 
 .card {
   @apply bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow;
@@ -145,14 +150,14 @@ button:disabled { opacity:.5; cursor:not-allowed; }
 .community-field .combobox-control input { padding-right:38px; }
 .combobox-control button { position:absolute; right:0; top:0; bottom:0; width:36px; display:grid; place-items:center; cursor:pointer; }
 .combobox-options { position:absolute; z-index:40; top:calc(100% + 4px); left:0; right:0; max-height:280px; overflow:auto; background:white; color:#20384e; border:1px solid #9babba; box-shadow:0 6px 18px #0002; border-radius:6px; }
-.combobox-options [role=option] { padding:10px 12px; display:flex; justify-content:space-between; gap:8px; cursor:pointer; overflow-wrap:anywhere; font-weight:400; }
+.combobox-options [role=option] { width:100%; min-height:44px; text-align:left; padding:10px 12px; display:flex; justify-content:space-between; gap:8px; cursor:pointer; overflow-wrap:anywhere; font-weight:400; touch-action:manipulation; }
 .combobox-options [role=option] svg { flex-shrink:0; }
 .combobox-options .highlighted { background:#e2edf4; }
 .combobox-options p { padding:12px; }
 .account-trigger { display:flex; align-items:center; gap:8px; min-height:42px; padding:6px 8px; cursor:pointer; border-radius:6px; }
 .account-name { max-width:140px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:14px; font-weight:600; }
-.account-options { position:absolute; right:0; top:calc(100% + 10px); width:240px; max-width:calc(100vw - 32px); background:white; border:1px solid #b9c5d0; box-shadow:0 8px 24px #0002; border-radius:8px; padding:6px; }
-.account-options a,.account-options button { display:flex; align-items:center; gap:10px; width:100%; padding:12px; text-align:left; font-size:14px; border-radius:4px; cursor:pointer; }
+.account-options { position:absolute; right:0; top:calc(100% + 10px); width:260px; max-width:calc(100vw - 32px); max-height:calc(100vh - 112px); max-height:calc(100dvh - 112px); overflow-y:auto; overscroll-behavior:contain; background:white; border:1px solid #b9c5d0; box-shadow:0 8px 24px #0002; border-radius:8px; padding:6px; }
+.account-options a,.account-options button { display:flex; align-items:center; gap:10px; width:100%; min-height:44px; padding:12px; text-align:left; font-size:14px; border-radius:4px; cursor:pointer; touch-action:manipulation; }
 .account-options a:hover,.account-options button:hover,.account-options :focus-visible { background:#e5ebf0; }
 .account-caption { font-size:13px; font-weight:600; padding:10px 12px; overflow-wrap:anywhere; border-bottom:1px solid #d6dde3; }
 .account-menu :focus-visible { outline:2px solid #2d4b69; outline-offset:2px; }

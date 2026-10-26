@@ -17,8 +17,8 @@ export function notFound(_req: Request, res: Response) {
   res.status(404).json({ error: 'Route not found.' });
 }
 
-export function errorHandler(error: unknown, _req: Request, res: Response, _next: NextFunction) {
-  if (error instanceof multer.MulterError) return res.status(400).json({ error: error.code === 'LIMIT_FILE_SIZE' ? 'The file exceeds the size limit shown on the upload field.' : 'Invalid file upload.' });
+export function errorHandler(error: unknown, req: Request, res: Response, _next: NextFunction) {
+  if (error instanceof multer.MulterError) return res.status(400).json({ error: error.code === 'LIMIT_FILE_SIZE' ? (req.originalUrl.includes('/listings')?'Each listing photo must be 5 MB or smaller.':'The file exceeds the size limit shown on the upload field.') : ['LIMIT_FILE_COUNT','LIMIT_UNEXPECTED_FILE'].includes(error.code)&&req.originalUrl.includes('/listings')?'Upload up to 5 listing photos.':'Invalid file upload.' });
   if (error instanceof ApiError) return res.status(error.status).json({ error: error.message });
   console.error(error);
   const code=(error as {code?:string})?.code;

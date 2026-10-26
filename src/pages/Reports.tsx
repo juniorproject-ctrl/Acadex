@@ -4,11 +4,11 @@ import {ActionStatus,CommunityPage,Empty,ErrorBox,Field,Submit,useAction} from '
 import {formValues,mutate,useResource} from '../lib/community';
 import {useCurrentUser} from '../lib/auth';
 import {FeedbackReviews} from './Feedback';
-type Report={id:string;subject:string;details:string;reporter:string;status:string;resolution:string};
+type Report={id:string;subject:string;details:string;reporter:string;status:string;resolution:string;target_type?:string;target_id?:string};
 function Review({report:r,reload}:{report:Report;reload:()=>void}){
  const action=useAction(),reply=useAction();
  return <article className="detail-section">
-  <h2>{r.subject}</h2><p>{r.reporter} | {r.status}</p><p className="preserve-lines">{r.details}</p>
+  <h2>{r.subject}</h2><p>{r.reporter} | {r.status}</p>{r.target_type&&<p className="muted">Reported {r.target_type}: {r.target_id}</p>}<p className="preserve-lines">{r.details}</p>
   <form className="editor-form" onSubmit={e=>{e.preventDefault();const body=formValues(e.currentTarget);void action.run(async()=>{await mutate('/reports/'+r.id,body,'PATCH');reload();},'Review saved.');}}>
    <Field label="Status"><select name="status" defaultValue={r.status}><option value="open">Open</option><option value="resolved">Resolved</option><option value="dismissed">Dismissed</option></select></Field>
    <Field label="Internal review notes"><textarea name="resolution" defaultValue={r.resolution} required minLength={5} maxLength={2000}/></Field>
@@ -35,8 +35,9 @@ export default function ReportForm(){
  const action=useAction(),[params]=useSearchParams();
  return <CommunityPage title="Report a Problem" showTabs={false} action={<Link className="text-link" to="/my-reports">My reports and replies</Link>}>
   <form className="editor-form" onSubmit={e=>{e.preventDefault();const form=e.currentTarget,body=formValues(form);void action.run(async()=>{await mutate('/reports',body);form.reset();},'Your report has been sent to the administrator.');}}>
+   {params.get('targetType')&&<><input type="hidden" name="targetType" value={params.get('targetType')||''}/><input type="hidden" name="targetId" value={params.get('targetId')||''}/><p className="muted">Reporting: {params.get('context')}</p></>}
    <Field label="Subject"><input name="subject" defaultValue={params.get('subject')||''} required minLength={3} maxLength={160}/></Field>
-   <Field label="Details"><textarea name="details" defaultValue={params.get('context')||''} required minLength={10} maxLength={5000} rows={5}/></Field>
+   <Field label="Details"><textarea name="details" defaultValue={params.get('targetType')?'':params.get('context')||''} required minLength={10} maxLength={5000} rows={5}/></Field>
    <Submit busy={action.busy}>Send report</Submit><ActionStatus action={action}/>
   </form>
  </CommunityPage>;

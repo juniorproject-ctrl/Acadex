@@ -4,6 +4,7 @@ import path from 'node:path';
 import multer from 'multer';
 import { config } from '../config';
 import { ApiError } from '../errors';
+import {MAX_LISTING_PHOTOS,MAX_LISTING_PHOTO_BYTES,LISTING_PHOTO_TYPES} from '../../src/lib/listingUploadRules';
 
 fs.mkdirSync(config.uploadDirectory, { recursive: true });
 
@@ -14,9 +15,9 @@ const storage = multer.diskStorage({
 
 export const listingUpload = multer({
   storage,
-  limits: { fileSize: 5 * 1024 * 1024, files: 5 },
+  limits: { fileSize: MAX_LISTING_PHOTO_BYTES, files: MAX_LISTING_PHOTOS },
   fileFilter: (_req, file, callback) => {
-    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.mimetype)) return callback(new ApiError(400, 'Images must be JPG, PNG, or WebP files.'));
+    if (!LISTING_PHOTO_TYPES.includes(file.mimetype)) return callback(new ApiError(400, 'Images must be JPG, PNG, or WebP files.'));
     callback(null, true);
   },
 });

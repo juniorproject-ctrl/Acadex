@@ -6,6 +6,7 @@ import { clearSession,getCurrentUser } from '../lib/auth';
 export default function AccountMenu() {
   const [open,setOpen]=useState(false),[,refresh]=useState(0);
   const container=useRef<HTMLDivElement>(null),trigger=useRef<HTMLButtonElement>(null);
+  const keyboardOpen=useRef(false);
   const location=useLocation(),navigate=useNavigate(),user=getCurrentUser();
   useEffect(()=>{setOpen(false);},[location.pathname,location.hash]);
   useEffect(()=>{
@@ -14,21 +15,22 @@ export default function AccountMenu() {
     window.addEventListener('acadex-session',update);document.addEventListener('pointerdown',outside);
     return()=>{window.removeEventListener('acadex-session',update);document.removeEventListener('pointerdown',outside);};
   },[]);
-  useEffect(()=>{if(open)container.current?.querySelector<HTMLElement>('[role="menuitem"]')?.focus();},[open]);
+  useEffect(()=>{if(open&&keyboardOpen.current)container.current?.querySelector<HTMLElement>('[role="menuitem"]')?.focus();},[open]);
   if(!user)return null;
-  return <div className="account-menu" ref={container} onBlur={e=>{if(!e.currentTarget.contains(e.relatedTarget))setOpen(false);}} onKeyDown={e=>{
+  return <div className="account-menu" ref={container} onBlur={e=>{if(e.relatedTarget&&!e.currentTarget.contains(e.relatedTarget))setOpen(false);}} onKeyDown={e=>{
+    if(e.target===trigger.current&&(e.key==='Enter'||e.key===' '))keyboardOpen.current=true;
     if(e.key==='Escape'){setOpen(false);trigger.current?.focus();}
     if(['ArrowDown','ArrowUp','Home','End'].includes(e.key)){
-      e.preventDefault();if(!open){setOpen(true);return;}
+      e.preventDefault();keyboardOpen.current=true;if(!open){setOpen(true);return;}
       const items=Array.from(container.current!.querySelectorAll<HTMLElement>('[role="menuitem"]'));
       const index=items.indexOf(document.activeElement as HTMLElement);
       items[e.key==='Home'?0:e.key==='End'?items.length-1:(index+(e.key==='ArrowDown'?1:-1)+items.length)%items.length]?.focus();
     }
   }}>
-    <button ref={trigger} className="account-trigger" aria-label="Account menu" aria-haspopup="menu" aria-expanded={open} aria-controls="account-options" onClick={()=>setOpen(!open)}>
+    <button ref={trigger} type="button" className="account-trigger" aria-label="Account menu" aria-haspopup="menu" aria-expanded={open} aria-controls="account-options" onPointerDown={()=>{keyboardOpen.current=false;}} onClick={()=>setOpen(!open)}>
       <span className="hidden xl:block account-name">{user.name}</span><User size={23}/><ChevronDown size={15}/>
     </button>
-    {open&&<div id="account-options" className="account-options" role="menu" aria-label="Account">
+    {open&&<div id="account-options" className="account-options" role="menu" aria-label="Account" onClick={e=>{if((e.target as HTMLElement).closest('[role="menuitem"]'))setOpen(false);}}>
       <p className="account-caption">{user.name}</p>
       <Link role="menuitem" to="/dashboard"><LayoutDashboard size={18}/>{user.role==='admin'?'Admin dashboard':user.role==='tutor'?'Tutor dashboard':user.role==='student'?'My Learning':'Dashboard'}</Link>
       <Link role="menuitem" to="/notifications"><Bell size={18}/>Notifications</Link>

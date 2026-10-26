@@ -7,6 +7,7 @@ import {ApiError,asyncHandler} from '../errors';
 import {requireAuth,type AuthRequest} from '../middleware/auth';
 import {notify,rows,text,transaction,userId,verified} from './shared';
 import {sendEmail} from '../email';
+import {demoDefinitions,demoId,syncDemoAccounts} from '../demoAccounts';
 
 export function createAdminRouter(sender=sendEmail){
 const router=Router();
@@ -18,6 +19,33 @@ async function audit(c:any,req:any,action:string,target:string,reason:string){
 router.get('/listings',asyncHandler(async(req,res)=>{
   const search=typeof req.query.q==='string'?req.query.q.trim().slice(0,160):'';
   res.json({items:await query('SELECT l.id,l.title,l.price,l.status,l.is_hidden AS hidden,u.name AS seller FROM listings l JOIN users u ON u.id=l.owner_id WHERE l.title LIKE ? ORDER BY l.created_at DESC LIMIT 100',['%'+search+'%'])});
+}));
+router.post('/demo-accounts',rateLimit({windowMs:900000,limit:5,message:{error:'Too many test-account setup attempts. Try again later.'}}),asyncHandler(async(req,res)=>{
+ if(demoDefinitions.some(([key])=>demoId(key)===userId(req)))throw new ApiError(403,'Use your real administrator account to manage demo access.');
+ if(req.body.confirmed!==true)throw new ApiError(400,'Confirm that these private accounts are for owner testing.');
+ const accounts=await transaction(async c=>{
+  const [actor]=await rows(c,'SELECT password_hash FROM users WHERE id=? FOR UPDATE',[userId(req)]);
+  if(typeof req.body.currentPassword!=='string'||!await bcrypt.compare(req.body.currentPassword,actor.password_hash))throw new ApiError(400,'Your current administrator password is incorrect.');
+  const result=await syncDemoAccounts(c,req.body.accounts);
+  await audit(c,req,'sync_demo_accounts','predefined_demo_accounts','Owner synchronized private demo credentials.');
+  return result;
+ });res.json({accounts});
+}));
+router.get('/demo-accounts',asyncHandler(async(_req,res)=>{
+ const records=await query<any[]>("SELECT id,email,role,is_verified,is_suspended,deleted_at FROM users WHERE email LIKE '%@acadex.example'");
+ res.json({items:demoDefinitions.map(([key,role])=>{
+  const account=records.find(row=>row.id===demoId(key)&&row.email===key+'@acadex.example');
+  return {id:key,email:key+'@acadex.example',role,status:!account?'not created':account.deleted_at?'closed':account.is_suspended?'disabled':account.is_verified?'ready':'unverified'};
+ })});
+}));
+router.post('/demo-accounts/disable',rateLimit({windowMs:900000,limit:5}),asyncHandler(async(req,res)=>{
+ if(demoDefinitions.some(([key])=>demoId(key)===userId(req)))throw new ApiError(403,'Use your real administrator account to disable demo access.');
+ await transaction(async c=>{
+  const [actor]=await rows(c,'SELECT password_hash FROM users WHERE id=? FOR UPDATE',[userId(req)]);
+  if(typeof req.body.currentPassword!=='string'||!await bcrypt.compare(req.body.currentPassword,actor.password_hash))throw new ApiError(400,'Your current administrator password is incorrect.');
+  for(const [key] of demoDefinitions)await c.execute('UPDATE users SET is_suspended=TRUE,session_version=session_version+1 WHERE id=? AND email=? AND deleted_at IS NULL',[demoId(key),key+'@acadex.example']);
+  await audit(c,req,'disable_demo_accounts','predefined_demo_accounts','Owner disabled demo access.');
+ });res.json({ok:true});
 }));
 router.patch('/listings/:id',asyncHandler(async(req,res)=>{
   if(typeof req.body.hidden!=='boolean')throw new ApiError(400,'Choose hidden or visible.');

@@ -4,6 +4,7 @@ import { api, type ApiListing } from '../lib/api';
 import { getCurrentUser } from '../lib/auth';
 import { mutate } from '../lib/community';
 import { ActionStatus, useAction } from './CommunityUI';
+import ReportLink from './ReportLink';
 
 export default function ListingActions({listing}: {listing: ApiListing}) {
   const navigate = useNavigate(), action = useAction();
@@ -24,5 +25,6 @@ export default function ListingActions({listing}: {listing: ApiListing}) {
     }, '')}><MessageCircle size={17}/>Chat with seller</button>
     {listing.price >= 2 && <Link to={'/checkout?kind=listing&reference='+listing.id} className="text-link"><ShoppingBag size={17}/>Buy item</Link>}
     <ActionStatus action={action}/>
+    <ReportLink kind="listing" id={listing.id} title={listing.title} ownerId={listing.ownerId}/>
   </div>;
 }

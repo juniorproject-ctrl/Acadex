@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Camera, Plus, X } from 'lucide-react';
 import { api, type ApiListing } from '../lib/api';
+import {listingPhotoError,LISTING_PHOTO_HINT} from '../lib/listingUploadRules';
 import {
   listingCategories,
   listingConditions,
@@ -73,6 +74,9 @@ export default function PostListing() {
     const files = e.target.files;
 
     if (files) {
+      const error=listingPhotoError(Array.from(files),images.length);
+      if(error){setError(error);e.target.value='';return;}
+      setError('');
       const newImages = Array.from(files).map((file) => ({ file, preview: URL.createObjectURL(file) }));
       setImages((prev) => [...prev, ...newImages].slice(0, 5));
       e.target.value = '';
@@ -170,7 +174,7 @@ export default function PostListing() {
               <input
                 type="file"
                 multiple
-                accept="image/*"
+                accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp"
                 className="hidden"
                 ref={fileInputRef}
                 onChange={handleFileChange}
@@ -223,7 +227,7 @@ export default function PostListing() {
                 </div>
               ))}
             </div>
-            <p className="text-[10px] text-gray-500">Upload up to 5 photos. First photo will be the cover.</p>
+            <p className="text-xs text-brand-light-navy">{LISTING_PHOTO_HINT}</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

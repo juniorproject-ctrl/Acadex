@@ -10,8 +10,17 @@ const router=Router();
 router.use(requireAuth,verified);
 router.post('/',rateLimit({windowMs:3600000,limit:20}),asyncHandler(async(req,res)=>{
  const subject=text(req.body.subject,'Subject',3),details=text(req.body.details,'Details',10,5000);
+ const targetType=req.body.targetType||null,targetId=req.body.targetId||null;
+ const targets:Record<string,{table:string;owner:string}>={listing:{table:'listings',owner:'owner_id'},group:{table:'study_groups',owner:'owner_id'},tutor:{table:'tutor_profiles',owner:'user_id'},event:{table:'campus_events',owner:'owner_id'},paper:{table:'past_papers',owner:'owner_id'}};
+ if((targetType||targetId)&&(typeof targetType!=='string'||!Object.hasOwn(targets,targetType)||typeof targetId!=='string'||!targetId.trim()||targetId.length>120))throw new ApiError(400,'Choose valid content to report.');
  await transaction(async c=>{
-  await c.execute('INSERT INTO reports (id,reporter_id,subject,details) VALUES (?,?,?,?)',[randomUUID(),userId(req),subject,details]);
+  if(targetType){
+   const target=targets[targetType],column=targetType==='tutor'?'user_id':'id';
+   const [item]=await rows(c,'SELECT '+target.owner+' AS ownerId FROM '+target.table+' WHERE '+column+'=?',[targetId]);
+   if(!item)throw new ApiError(404,'The reported content could not be found.');
+   if(item.ownerId===userId(req))throw new ApiError(400,'You cannot report your own content.');
+  }
+  await c.execute('INSERT INTO reports (id,reporter_id,subject,details,target_type,target_id) VALUES (?,?,?,?,?,?)',[randomUUID(),userId(req),subject,details,targetType,targetId]);
   for(const a of await rows(c,"SELECT id FROM users WHERE role='admin' AND is_verified=TRUE"))await notify(c,a.id,'A new complaint needs review.','/dashboard');
  });await notifyAdminEmail('New report');res.status(201).json({ok:true});
 }));

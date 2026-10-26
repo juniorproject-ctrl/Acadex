@@ -1,10 +1,11 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { createHash,randomBytes } from 'node:crypto';
-import bcrypt from 'bcrypt';
 import { chromium } from '@playwright/test';
 import { pool,query } from '../db';
 import { config } from '../config';
+import {demoDefinitions,syncDemoAccounts} from '../demoAccounts';
+import {transaction} from '../community/shared';
 
 // Explicit local seed only: never run this from startup or deployment.
 if(config.nodeEnv==='production')throw new Error('Demo seeding is disabled in production.');
@@ -13,7 +14,7 @@ const credentialsPath=path.resolve('.demo-accounts.local.json');
 type Account={email:string;password:string;role:string;name:string};
 const accounts:Record<string,Account>={};
 try {Object.assign(accounts,JSON.parse(await fs.readFile(credentialsPath,'utf8')));} catch(error) {if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;}
-const definitions=[['admin','admin','Sample Administrator'],['student','student','Sample Student'],['leader','leader','Sample Group Leader'],['tutor','tutor','Sample Algorithms Tutor'],['math-tutor','tutor','Sample Calculus Tutor'],['english-tutor','tutor','Sample English Tutor']];
+const definitions=demoDefinitions;
 for(const [key,role,name] of definitions)accounts[key]??={email:`${key}@acadex.example`,password:randomBytes(18).toString('base64url'),role,name};
 const courses=[
   {code:'1501371',title:'Algorithms',group:'Algorithm Masters',questions:['Explain the difference between O(n) and O(log n).','Trace binary search for 11 in [2, 5, 8, 11, 17, 23].','Write pseudocode for insertion sort. State its worst-case time complexity.']},
@@ -21,15 +22,12 @@ const courses=[
   {code:'0202112',title:'Academic English',group:'Academic Writing Circle',questions:['Write a topic sentence for a paragraph about collaborative learning.','Explain the difference between a quotation and a paraphrase.','Write a 100-word summary of a course topic, using your own words.']},
 ];
 async function seed() {
+  await transaction(connection=>syncDemoAccounts(connection,accounts));
+  await fs.writeFile(credentialsPath,JSON.stringify(accounts,null,2)+'\n',{mode:0o600});
+  if(process.argv.includes('--accounts-only')){console.log('Local demo accounts synchronized with .demo-accounts.local.json.');return;}
   const records=await query<any[]>('SELECT id,university_id,code FROM courses WHERE code IN (?,?,?)',courses.map(c=>c.code));
   if(records.length!==3)throw new Error('Run db:migrate and db:catalog first.');
   const university=records[0].university_id;
-  await fs.writeFile(credentialsPath,JSON.stringify(accounts,null,2)+'\n',{mode:0o600});
-    for(const [key] of definitions){
-      const a=accounts[key];
-      await query('INSERT IGNORE INTO users (id,name,email,password_hash,role,is_verified,verified_at) VALUES (?,?,?,?,?,TRUE,UTC_TIMESTAMP())',[id(key),a.name,a.email,await bcrypt.hash(a.password,12),a.role]);
-    }
-  if(process.argv.includes('--accounts-only')){console.log('Local demo accounts ready. Credentials are in .demo-accounts.local.json.');return;}
   await fs.mkdir(config.paperDirectory,{recursive:true});
   const browser=await chromium.launch({channel:'msedge',headless:true});
   const connection=await pool.getConnection();

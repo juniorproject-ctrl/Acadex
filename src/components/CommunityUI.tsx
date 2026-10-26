@@ -32,9 +32,11 @@ export function CatalogSelect({onCourse,initialUniversity='',required=true}:{onC
   const {data,error}=useResource<Catalog>('/catalog');
   const [uni,setUni]=useState(initialUniversity),[major,setMajor]=useState(''),[selected,setSelected]=useState('');
   const options=simpleAcademicOptions(data||{majors:[],courses:[]},uni,major);
+  const hasCourses=options.courses.some(course=>course.ids.length>0);
   return <><ErrorBox error={error}/><Field label="University"><SearchableSelect name="universityId" required={required} value={uni} onChange={e=>{setUni(e.target.value);setMajor('');setSelected('');onCourse?.('');}}><option value="">Select university</option>{data?.universities.map(u=><option key={u.id} value={u.id}>{u.name}</option>)}</SearchableSelect></Field>{onCourse&&<>
     <Field label="Major"><SearchableSelect value={major} onChange={e=>{setMajor(e.target.value);setSelected('');onCourse('');}}><option value="">All majors</option>{options.majors.map(m=><option key={m.id} value={m.id}>{m.name}</option>)}</SearchableSelect></Field>
-    <Field label="Course"><SearchableSelect name="courseId" required value={selected} onChange={e=>{setSelected(e.target.value);const chosen=data?.courses.find(c=>c.id===e.target.value);if(chosen)setUni(chosen.universityId);onCourse(e.target.value);}}><option value="">Select course</option>{options.courses.filter(c=>c.ids.length).map(c=><option key={c.id} value={c.ids[0]}>{c.name}</option>)}</SearchableSelect></Field>
+    <Field label="Course"><SearchableSelect name="courseId" required disabled={!data||!hasCourses} value={selected} onChange={e=>{setSelected(e.target.value);const chosen=data?.courses.find(c=>c.id===e.target.value);if(chosen)setUni(chosen.universityId);onCourse(e.target.value);}}><option value="">{data?'Select course':'Loading courses...'}</option>{options.courses.filter(c=>c.ids.length).map(c=><option key={c.id} value={c.ids[0]}>{c.name}</option>)}</SearchableSelect></Field>
+    {data&&!hasCourses&&<ErrorBox error="Courses are temporarily unavailable for this selection. Please try again later."/>}
   </>}</>;
 }
 export function SearchFilters({academic=false,events=false}:{academic?:boolean;events?:boolean}) {

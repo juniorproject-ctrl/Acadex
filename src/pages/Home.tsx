@@ -86,12 +86,12 @@ export default function Home() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
             {featured.map((item) => (
-              <div key={item.id} className="bg-white rounded-2xl overflow-hidden shadow-xl flex h-full flex-col">
+              <div key={item.id} className="listing-card bg-white rounded-2xl overflow-hidden shadow-xl flex h-full flex-col">
                 <div className="relative h-72 w-full overflow-hidden bg-gray-100">
                   {item.image && <img src={item.image} alt={item.title} className="h-full w-full object-cover object-center" />}
                 </div>
                 <div className="flex min-h-[13rem] flex-1 flex-col p-5">
-                  <h3 className="text-sm font-bold text-brand-navy line-clamp-2 mb-1"><Link to={"/listings/"+item.id}>{item.title}</Link></h3>
+                  <h3 className="text-sm font-bold text-brand-navy line-clamp-2 mb-1"><Link className="listing-card-link" to={"/listings/"+item.id}>{item.title}</Link></h3>
                   <p className="text-[10px] text-gray-500 mb-2">{item.condition} • {item.location}</p>
                   <p className="text-lg font-bold text-brand-navy mt-auto">AED {item.price}</p>
                   <div className="flex items-center mt-3 pt-3 border-t border-gray-100">
