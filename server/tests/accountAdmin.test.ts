@@ -63,12 +63,19 @@ test('account security, private admin access and support',{skip:process.env.ACCO
    await call('/admin/users/'+users[0].id,400,0,{role:'student',suspended:true,currentPassword:password,reason:'Do not remove own admin access'},'PATCH');
   });
   await t.test('report replies reach only the reporting account',async()=>{
+   const target={subject:'Report target listing',details:'This listing description needs review.',targetType:'listing',targetId:listing};
+   await call('/reports',400,2,target);
+   await call('/reports',404,3,{...target,targetId:randomUUID()});
+   await call('/reports',400,3,{...target,targetType:'constructor'});
+   await call('/reports',201,3,target);
+   const [linked]=await query<any[]>('SELECT id,target_type,target_id FROM reports WHERE reporter_id=?',[users[3].id]);reportIds.push(linked.id);
+   assert.equal(linked.target_type,'listing');assert.equal(linked.target_id,listing);
    await call('/reports',201,2,{subject:'Account integration report',details:'Testing administrator reply visibility.'});
    const [r]=await query<any[]>('SELECT id FROM reports WHERE reporter_id=?',[users[2].id]);reportIds.push(r.id);
    await call('/reports/'+r.id+'/reply',403,3,{body:'An unauthorised reply'});
    await call('/reports/'+r.id+'/reply',201,0,{body:'We have reviewed your report. Thank you.'});
    const mine=await call('/reports/mine',200,2);assert.equal(mine.items[0].replies.length,1);
-   const other=await call('/reports/mine',200,3);assert.equal(other.items.length,0);
+   const other=await call('/reports/mine',200,3);assert.equal(other.items.some((item:any)=>item.id===r.id),false);
   });
   await t.test('anonymous contact requests are private and admin replies use stored email',async()=>{
    const email=randomUUID()+'@example.test';
