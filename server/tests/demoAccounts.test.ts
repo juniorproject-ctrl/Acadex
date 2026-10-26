@@ -4,7 +4,7 @@ import {randomBytes,randomUUID} from 'node:crypto';
 import fs from 'node:fs/promises';
 import express from 'express';
 import bcrypt from 'bcrypt';
-import {demoDefinitions,demoCredentials,demoId,syncDemoAccounts} from '../demoAccounts';
+import {demoDefinitions,demoCredentials,demoId,syncDemoAccounts,checkDemoAccounts} from '../demoAccounts';
 import {pool,query} from '../db';
 import {createAccessToken} from '../auth';
 import auth from '../routes/auth';
@@ -36,6 +36,13 @@ test('demo synchronization and private administrator import',{skip:process.env.D
    try{
     const accounts=sample();const first=await syncDemoAccounts(c,accounts);assert.equal(first.length,6);
     const second=await syncDemoAccounts(c,accounts);assert.ok(second.every(a=>a.status==='ready'));
+    assert.ok((await checkDemoAccounts(c,accounts)).every(a=>a.loginReady&&a.passwordMatches));
+    const mismatched=sample();mismatched.student=accounts.student;
+    const checked=await checkDemoAccounts(c,mismatched);
+    assert.deepEqual(checked.filter(a=>a.loginReady).map(a=>a.key),['student']);
+    await syncDemoAccounts(c,mismatched);
+    assert.ok((await checkDemoAccounts(c,mismatched)).every(a=>a.loginReady));
+    await syncDemoAccounts(c,accounts);
     const [records]=await c.query<any[]>('SELECT password_hash,is_verified,role FROM users WHERE id=?',[demoId('student')]);
     assert.ok(await bcrypt.compare(accounts.student.password,records[0].password_hash));assert.equal(records[0].is_verified,1);assert.equal(records[0].role,'student');
     await c.execute('UPDATE users SET is_suspended=TRUE WHERE id=?',[demoId('student')]);
@@ -48,12 +55,19 @@ test('demo synchronization and private administrator import',{skip:process.env.D
    await call('/admin/demo-accounts',403,createAccessToken(student),input);
    await call('/admin/demo-accounts',400,createAccessToken(actor),{...input,currentPassword:'wrong'});
    await call('/admin/demo-accounts/disable',400,createAccessToken(actor),{currentPassword:'wrong'});
+   await call('/admin/demo-accounts/check',401,undefined,input);
+   await call('/admin/demo-accounts/check',403,createAccessToken(student),input);
+   await call('/admin/demo-accounts/check',400,createAccessToken(actor),{...input,currentPassword:'wrong'});
   });
   await t.test('the existing private file works through import and all six normal logins',async sub=>{
    let accounts:any;
    try{accounts=JSON.parse(await fs.readFile('.demo-accounts.local.json','utf8'));}catch{ sub.skip('Private local credential file is not available.');return;}
    const imported=await call('/admin/demo-accounts',200,createAccessToken(actor),{accounts,currentPassword:password,confirmed:true});
    assert.equal(imported.accounts.length,6);assert.ok(imported.accounts.every((a:any)=>!('password' in a)));
+   assert.ok(imported.accounts.every((a:any)=>a.loginReady&&a.passwordMatches));
+   const checked=await call('/admin/demo-accounts/check',200,createAccessToken(actor),{accounts,currentPassword:password});
+   assert.ok(checked.accounts.every((a:any)=>a.loginReady));
+   assert.ok(!Object.values(accounts).some((a:any)=>JSON.stringify(checked).includes(a.password)),'Credential-check responses must not include passwords.');
    for(const [key,role] of demoDefinitions){const result=await call('/auth/login',200,undefined,{email:accounts[key].email,password:accounts[key].password});assert.equal(result.user.role,role);}
   });
  }finally{

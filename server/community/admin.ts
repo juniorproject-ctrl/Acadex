@@ -7,7 +7,7 @@ import {ApiError,asyncHandler} from '../errors';
 import {requireAuth,type AuthRequest} from '../middleware/auth';
 import {notify,rows,text,transaction,userId,verified} from './shared';
 import {sendEmail} from '../email';
-import {demoDefinitions,demoId,syncDemoAccounts} from '../demoAccounts';
+import {demoDefinitions,demoId,syncDemoAccounts,checkDemoAccounts} from '../demoAccounts';
 
 export function createAdminRouter(sender=sendEmail){
 const router=Router();
@@ -26,16 +26,26 @@ router.post('/demo-accounts',rateLimit({windowMs:900000,limit:5,message:{error:'
  const accounts=await transaction(async c=>{
   const [actor]=await rows(c,'SELECT password_hash FROM users WHERE id=? FOR UPDATE',[userId(req)]);
   if(typeof req.body.currentPassword!=='string'||!await bcrypt.compare(req.body.currentPassword,actor.password_hash))throw new ApiError(400,'Your current administrator password is incorrect.');
-  const result=await syncDemoAccounts(c,req.body.accounts);
+  await syncDemoAccounts(c,req.body.accounts);
+  const result=await checkDemoAccounts(c,req.body.accounts);
+  if(result.some(account=>!account.loginReady))throw new ApiError(409,'Some demo credentials could not be verified. No changes were committed.');
   await audit(c,req,'sync_demo_accounts','predefined_demo_accounts','Owner synchronized private demo credentials.');
   return result;
  });res.json({accounts});
+}));
+router.post('/demo-accounts/check',rateLimit({windowMs:900000,limit:5,message:{error:'Too many private credential checks. Try again later.'}}),asyncHandler(async(req,res)=>{
+ if(demoDefinitions.some(([key])=>demoId(key)===userId(req)))throw new ApiError(403,'Use your real administrator account to check demo access.');
+ const accounts=await transaction(async c=>{
+  const [actor]=await rows(c,'SELECT password_hash FROM users WHERE id=?',[userId(req)]);
+  if(typeof req.body.currentPassword!=='string'||!await bcrypt.compare(req.body.currentPassword,actor.password_hash))throw new ApiError(400,'Your current administrator password is incorrect.');
+  return checkDemoAccounts(c,req.body.accounts);
+ });res.setHeader('Cache-Control','no-store');res.json({accounts});
 }));
 router.get('/demo-accounts',asyncHandler(async(_req,res)=>{
  const records=await query<any[]>("SELECT id,email,role,is_verified,is_suspended,deleted_at FROM users WHERE email LIKE '%@acadex.example'");
  res.json({items:demoDefinitions.map(([key,role])=>{
   const account=records.find(row=>row.id===demoId(key)&&row.email===key+'@acadex.example');
-  return {id:key,email:key+'@acadex.example',role,status:!account?'not created':account.deleted_at?'closed':account.is_suspended?'disabled':account.is_verified?'ready':'unverified'};
+  return {id:key,email:key+'@acadex.example',role,status:!account?'not created':account.deleted_at?'closed':account.is_suspended?'disabled':account.is_verified?'enabled - password not checked':'unverified'};
  })});
 }));
 router.post('/demo-accounts/disable',rateLimit({windowMs:900000,limit:5}),asyncHandler(async(req,res)=>{

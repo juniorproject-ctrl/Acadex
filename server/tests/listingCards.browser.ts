@@ -1,6 +1,7 @@
 import {chromium,expect} from '@playwright/test';
 import {randomUUID} from 'node:crypto';
 import bcrypt from 'bcrypt';
+import fs from 'node:fs/promises';
 import {query,pool} from '../db';
 import {createAccessToken} from '../auth';
 
@@ -45,6 +46,22 @@ async function main(){
   const admin=await contextFor(2,1440);await admin.page.goto(base+'/admin');await admin.page.getByRole('tab',{name:'Test accounts',exact:true}).click();
   await admin.page.getByLabel('Private demo-account JSON file').setInputFiles('.demo-accounts.local.json');await admin.page.getByLabel('Your real administrator password').fill(password);await admin.page.getByRole('checkbox').check();await admin.page.getByRole('button',{name:'Synchronize test accounts',exact:true}).click();
   await expect(admin.page.getByText('Test accounts synchronized. Sign in using the emails and passwords in your private file.',{exact:true})).toBeVisible();
+  await expect(admin.page.getByText('Password verified',{exact:true})).toHaveCount(6);
+  await admin.page.getByLabel('Your real administrator password').fill(password);
+  await admin.page.getByRole('button',{name:'Check login credentials',exact:true}).click();
+  await expect(admin.page.getByText('Passwords checked against this website without changing them.',{exact:true})).toBeVisible();
+  await admin.page.evaluate(()=>{Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async(value:string)=>{(window as any).__qaCopied=value;}}});});
+  await admin.page.getByRole('button',{name:'Copy email for tutor@acadex.example',exact:true}).click();
+  expect(await admin.page.evaluate(()=>(window as any).__qaCopied==='tutor@acadex.example')).toBe(true);
+  await admin.page.getByRole('button',{name:'Copy password for tutor@acadex.example',exact:true}).click();
+  const credentials=JSON.parse(await fs.readFile('.demo-accounts.local.json','utf8'));
+  expect(await admin.page.evaluate(value=>(window as any).__qaCopied===value,credentials.tutor.password)).toBe(true);
+  const tutorContext=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
+  const tutorPage=await tutorContext.newPage();await tutorPage.goto(base+'/');
+  await tutorPage.getByPlaceholder('Enter your university email').fill('tutor@acadex.example');await tutorPage.getByPlaceholder('Enter your password').fill(credentials.tutor.password);
+  await tutorPage.getByRole('button',{name:'Sign In',exact:true}).click();await expect(tutorPage).toHaveURL(base+'/home');
+  await tutorPage.getByRole('button',{name:'Account menu',exact:true}).click();await expect(tutorPage.getByRole('menuitem',{name:'Tutor dashboard',exact:true})).toBeVisible();await tutorContext.close();
+  await admin.page.evaluate(()=>{(window as any).__qaCopied='';});
   await admin.page.screenshot({path:'test-results/private-test-account-setup.png',fullPage:true});await admin.context.close();
   expect(errors).toEqual([]);console.log('PASS: private administrator credential-file import and no browser errors.');
  }finally{

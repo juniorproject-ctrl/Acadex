@@ -41,3 +41,13 @@ export async function syncDemoAccounts(connection:PoolConnection,input:unknown){
  }
  return result;
 }
+export async function checkDemoAccounts(connection:PoolConnection,input:unknown){
+ const accounts=demoCredentials(input),result:{key:string;email:string;role:string;status:string;passwordMatches:boolean;loginReady:boolean}[]=[];
+ for(const account of accounts){
+  const [user]=await rows(connection,'SELECT * FROM users WHERE email=?',[account.email]);
+  const passwordMatches=!!user?.password_hash&&await bcrypt.compare(account.password,user.password_hash);
+  const status=!user?'Not created':user.deleted_at?'Closed':user.is_suspended?'Disabled':!user.is_verified?'Email unverified':!passwordMatches?'Password differs from selected file':user.id!==account.id||user.role!==account.role?'Account identity or role differs':'Password verified';
+  result.push({key:account.key,email:account.email,role:user?.role||account.role,status,passwordMatches,loginReady:status==='Password verified'});
+ }
+ return result;
+}
