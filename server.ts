@@ -24,6 +24,7 @@ import adminRoutes from './server/community/admin';
 import supportRoutes from './server/community/support';
 import { bootstrapAdmin } from './server/bootstrapAdmin';
 import { requireAuth } from './server/middleware/auth';
+import { securityHeaders } from './server/middleware/securityHeaders';
 import { verified } from './server/community/shared';
 import paymentRoutes,{paymentWebhook} from './server/community/payments';
 
@@ -33,6 +34,7 @@ async function startServer() {
   const allowedOrigins = config.frontendOrigin.split(',').map((origin) => origin.trim()).filter(Boolean);
 
   app.disable('x-powered-by');
+  app.use(securityHeaders(config.nodeEnv.trim()==='production'||!!process.env.RAILWAY_ENVIRONMENT_ID));
   if(process.env.TRUST_PROXY==='1')app.set('trust proxy',1);
   app.use(cors({
     origin(origin, callback) {

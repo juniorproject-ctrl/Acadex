@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { query } from '../db';
-import { asyncHandler } from '../errors';
+import { ApiError, asyncHandler } from '../errors';
 import { requireAuth } from '../middleware/auth';
 import { notify, rows, text, transaction, userId, verified } from './shared';
 import accountSecurity from './accountSecurity';
@@ -38,6 +38,12 @@ router.get('/notifications', asyncHandler(async (req,res) => {
 }));
 router.patch('/notifications/read', asyncHandler(async (req,res) => {
   await query('UPDATE notifications SET is_read=TRUE WHERE user_id=?',[userId(req)]);
+  res.json({ok:true});
+}));
+router.patch('/notifications/:id/read', asyncHandler(async(req,res)=>{
+  const [notification]=await query<any[]>('SELECT id FROM notifications WHERE id=? AND user_id=?',[req.params.id,userId(req)]);
+  if(!notification)throw new ApiError(404,'Notification not found.');
+  await query('UPDATE notifications SET is_read=TRUE WHERE id=? AND user_id=?',[req.params.id,userId(req)]);
   res.json({ok:true});
 }));
 export default router;

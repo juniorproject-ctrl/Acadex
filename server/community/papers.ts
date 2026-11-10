@@ -25,6 +25,7 @@ router.get('/:id/download', asyncHandler(async (req, res) => {
   const file = path.join(directory, path.basename(paper.file_name));
   try { await fs.access(file); } catch { throw new ApiError(404, 'The PDF is no longer available.'); }
   res.setHeader('X-Content-Type-Options','nosniff');
+  res.setHeader('Cache-Control','private, no-store');
   res.download(file, paper.title.replace(/[^a-z0-9 -]/gi,'').slice(0,100) + '.pdf');
 }));
 router.post('/', requireAuth, verified, rateLimit({ windowMs: 3600_000, limit: 20, message: { error: 'Upload limit reached. Try again later.' } }), upload.single('file'), asyncHandler(async (req, res) => {

@@ -142,6 +142,24 @@ button:disabled { opacity:.5; cursor:not-allowed; }
 .event-detail>div { display:flex; flex-direction:column; align-items:flex-start; gap:20px; }
 .notification-row { display:flex; flex-direction:column; gap:8px; padding:20px; border-bottom:1px solid #d6dde3; }
 .notification-row.unread { background:#e4edf3; border-left:3px solid #2d4b69; }
+.notification-row { border-left:3px solid transparent; }
+.notification-row strong { font-weight:500; }
+.notification-row.unread strong { font-weight:700; }
+.notification-title { display:flex; align-items:baseline; justify-content:space-between; gap:16px; }
+.notification-title strong { overflow-wrap:anywhere; }
+.notification-unread-label { font-size:12px; font-weight:700; flex-shrink:0; color:#174566; }
+.listing-gallery { display:grid; align-content:start; gap:12px; min-width:0; }
+.listing-gallery-main { position:relative; aspect-ratio:4/3; background:#e8edf1; border:1px solid #c5d1db; border-radius:8px; overflow:hidden; touch-action:pan-y; }
+.listing-gallery-main>img { width:100%; height:100%; object-fit:contain; }
+.listing-gallery-main .icon-button { position:absolute; top:50%; transform:translateY(-50%); background:#fff; color:#174566; width:44px; height:44px; box-shadow:0 1px 6px #0002; }
+.gallery-previous { left:8px; }
+.gallery-next { right:8px; }
+.gallery-counter { margin:0; font-size:14px; text-align:center; }
+.listing-gallery-thumbnails { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:8px; }
+.listing-gallery-thumbnails button { display:flex; align-items:center; justify-content:center; aspect-ratio:1; padding:3px; border:2px solid transparent; border-radius:6px; background:#fff; overflow:hidden; }
+.listing-gallery-thumbnails button[aria-pressed=true] { border-color:#174566; }
+.listing-gallery-thumbnails img { width:100%; height:100%; object-fit:cover; }
+.listing-gallery-placeholder { display:flex; height:100%; align-items:center; justify-content:center; flex-direction:column; gap:12px; color:#47657a; }
 .notification-count { position:absolute; top:-1px; right:-3px; min-width:18px; height:18px; background:#ab3f39; color:white; font-size:10px; line-height:18px; border-radius:50%; text-align:center; padding:0 3px; }
 .mobile-navigation { display:flex; flex-direction:column; gap:16px; padding:16px 0 24px; border-top:1px solid #e4e9ee; }
 .account-menu { position:relative; }

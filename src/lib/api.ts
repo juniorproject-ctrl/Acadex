@@ -13,6 +13,24 @@ export function getToken() { return localStorage.getItem(TOKEN_KEY); }
 export function setToken(token: string) { localStorage.setItem(TOKEN_KEY, token); }
 export function clearToken() { localStorage.removeItem(TOKEN_KEY); }
 
+export async function downloadPdf(path:string,title:string) {
+  const token=getToken();
+  const response=await fetch('/api'+path,{headers:token?{Authorization:'Bearer '+token}:{},cache:'no-store'});
+  if(!response.ok){
+    if(response.status===401)clearToken();
+    const data=await response.json().catch(()=>null);
+    throw new Error(data?.error||'The PDF could not be downloaded. Please try again.');
+  }
+  if(!response.headers.get('content-type')?.toLowerCase().startsWith('application/pdf'))throw new Error('The server did not return a PDF.');
+  const file=await response.blob();
+  if(await file.slice(0,5).text()!=='%PDF-')throw new Error('The downloaded file is not a valid PDF.');
+  const url=URL.createObjectURL(file),link=document.createElement('a');
+  link.href=url;link.download=(title.replace(/[\\/:*?"<>|\u0000-\u001f]/g,'').trim().slice(0,100)||'Past paper')+'.pdf';
+  document.body.appendChild(link);link.click();link.remove();
+  // Give mobile browsers time to open their download/share UI before releasing the file.
+  window.setTimeout(()=>URL.revokeObjectURL(url),60000);
+}
+
 export async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const headers = new Headers(options.headers);
   const token = getToken();
