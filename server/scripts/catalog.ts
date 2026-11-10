@@ -4,6 +4,7 @@ import { load } from 'cheerio';
 import { pool } from '../db';
 import { starterSubjects, starterUniversities } from '../data/starter-catalog';
 import { academicTopics } from '../../src/lib/academicTopics';
+import {importPublishedUniversity,type PublishedUniversity} from '../catalogImport';
 
 type Major = {id:string;name:string;sourceUrl:string;courses:{code:string;name:string;isShared:boolean}[]};
 const snapshotPath = path.resolve('server/data/sharjah-catalog.json');
@@ -28,7 +29,8 @@ async function refresh() {
       const codeIndex = cells.findIndex(cell=>/^\d{6,8}$/.test(cell));
       if(codeIndex<0)return;
       const code=cells[codeIndex];
-      const title=cells[codeIndex+1];
+      const titleCell=$(row).children('td,th').eq(codeIndex+1);
+      const title=clean(titleCell.find('p').first().text())||cells[codeIndex+1];
       if(!title||!/[a-zA-Z\u0600-\u06ff]/.test(title)||title.length>240||courses.has(code))return;
       courses.set(code,{code,name:title,isShared:commonCodes.has(code)});
     });
@@ -41,22 +43,24 @@ async function refresh() {
   await fs.writeFile(snapshotPath,JSON.stringify({retrievedAt:new Date().toISOString(),university:'University of Sharjah',majors},null,2)+'\n');
 }
 async function main() {
-  if(process.argv.includes('--refresh'))await refresh();
+  if(process.argv.includes('--refresh')||process.argv.includes('--refresh-only'))await refresh();
+  if(process.argv.includes('--refresh-only')){await pool.end();return;}
   const snapshot=JSON.parse(await fs.readFile(snapshotPath,'utf8')) as {majors:Major[]};
+  const supplement=JSON.parse(await fs.readFile('server/data/sharjah-supplement.json','utf8')) as {majors:Pick<Major,'id'|'courses'>[]};
+  for(const major of snapshot.majors){
+    const fallback=supplement.majors.find(m=>m.id===major.id);
+    if(fallback&&major.courses.length<=1)major.courses=[...new Map([...fallback.courses,...major.courses].map(c=>[c.code,c])).values()];
+  }
+  const partners=JSON.parse(await fs.readFile('server/data/partner-catalog.json','utf8')) as {universities:PublishedUniversity[]};
+  const officialUniversities=new Set(['uos',...partners.universities.map(u=>u.id)]);
   const connection=await pool.getConnection();
   try {
     await connection.beginTransaction();
-    await connection.execute('INSERT INTO universities (id,name,website) VALUES (?,?,?) ON DUPLICATE KEY UPDATE name=VALUES(name),website=VALUES(website)',['uos','University of Sharjah','https://www.sharjah.ac.ae']);
-    for(const major of snapshot.majors) {
-      await connection.execute('INSERT INTO majors (id,university_id,name,source_url) VALUES (?,?,?,?) ON DUPLICATE KEY UPDATE name=VALUES(name),source_url=VALUES(source_url)',[major.id,'uos',major.name,major.sourceUrl]);
-      for(const course of major.courses) {
-        const id='uos-'+course.code;
-        await connection.execute('INSERT INTO courses (id,university_id,code,name,is_shared,source_url) VALUES (?,?,?,?,?,?) ON DUPLICATE KEY UPDATE is_shared=GREATEST(is_shared,VALUES(is_shared))',[id,'uos',course.code,course.name,course.isShared,major.sourceUrl]);
-        await connection.execute('INSERT IGNORE INTO course_majors (course_id,major_id) VALUES (?,?)',[id,major.id]);
-      }
-    }
+    await importPublishedUniversity(connection,{id:'uos',name:'University of Sharjah',website:'https://www.sharjah.ac.ae',majors:snapshot.majors});
+    for(const institution of partners.universities)await importPublishedUniversity(connection,institution);
     for (const institution of starterUniversities) {
       await connection.execute('INSERT INTO universities (id,name,website) VALUES (?,?,?) ON DUPLICATE KEY UPDATE name=VALUES(name),website=VALUES(website)', [institution.id,institution.name,institution.website]);
+      if(officialUniversities.has(institution.id))continue;
       for (const [slug,name,topics] of starterSubjects) {
         if (!institution.areas.includes(slug)) continue;
         // Existing published Sharjah programmes stay intact; starter topics have separate IDs.
@@ -71,6 +75,7 @@ async function main() {
       }
     }
     for(const institution of starterUniversities){
+      if(officialUniversities.has(institution.id))continue;
       for(const topic of academicTopics){
         const majorId=institution.id+'-basic-'+topic.id;
         await connection.execute('INSERT IGNORE INTO majors (id,university_id,name,source_url) VALUES (?,?,?,?)',[majorId,institution.id,topic.name,'']);
@@ -82,7 +87,7 @@ async function main() {
       }
     }
     await connection.commit();
-    console.log(`Imported ${snapshot.majors.length} published programmes and starter filter topics for four universities. No exam documents or accounts were created.`);
+    console.log(`Imported published programmes for University of Sharjah, American University of Sharjah and Ajman University; retained starter topics for HCT and City University Ajman. Existing papers, groups and accounts were preserved.`);
   } catch(error) {await connection.rollback();throw error;}
   finally {connection.release();await pool.end();}
 }

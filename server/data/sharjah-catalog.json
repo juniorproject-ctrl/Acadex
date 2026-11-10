@@ -1,5 +1,5 @@
 {
-  "retrievedAt": "2026-09-26T12:37:22.942Z",
+  "retrievedAt": "2026-11-10T16:49:03.469Z",
   "university": "University of Sharjah",
   "majors": [
     {
@@ -143,8 +143,13 @@
           "isShared": false
         },
         {
-          "code": "0301329",
-          "name": "Accounting Internship",
+          "code": "0301435",
+          "name": "Accounting Internship I",
+          "isShared": false
+        },
+        {
+          "code": "0301436",
+          "name": "Accounting Internship II",
           "isShared": false
         },
         {
@@ -194,7 +199,7 @@
         },
         {
           "code": "0302360",
-          "name": "Human Resource Management*",
+          "name": "Human Resources Management*",
           "isShared": false
         },
         {
@@ -518,7 +523,7 @@
           "isShared": false
         },
         {
-          "code": "1503310",
+          "code": "1503334",
           "name": "Advanced Business Programming",
           "isShared": false
         },
@@ -533,6 +538,11 @@
           "isShared": false
         },
         {
+          "code": "0301329",
+          "name": "Accounting Internship",
+          "isShared": false
+        },
+        {
           "code": "0301416",
           "name": "Forensic Accounting",
           "isShared": false
@@ -540,11 +550,6 @@
         {
           "code": "0301430",
           "name": "Advanced Accounting",
-          "isShared": false
-        },
-        {
-          "code": "0301436",
-          "name": "Accounting Internship II",
           "isShared": false
         }
       ]
@@ -1548,7 +1553,7 @@
     },
     {
       "id": "uos-artificial-intelligence",
-      "name": "Bachelor in Artificial Intelligence",
+      "name": "Bachelor of Science in Artificial Intelligence",
       "sourceUrl": "https://www.sharjah.ac.ae/Academics/Degree/Undergraduate/Artificial-Intelligence",
       "courses": [
         {
@@ -1573,7 +1578,7 @@
         },
         {
           "code": "1501263",
-          "name": "Intro. to Database Manag. Sys.",
+          "name": "Introduction to Database Management Systems",
           "isShared": false
         },
         {
@@ -1593,12 +1598,12 @@
         },
         {
           "code": "1501330",
-          "name": "Intro. To Artificial Intelligence",
+          "name": "Introduction to Artificial Intelligence",
           "isShared": false
         },
         {
           "code": "1501331",
-          "name": "Intro. To Machine Learning",
+          "name": "Introduction to Machine Learning",
           "isShared": false
         },
         {
@@ -1618,7 +1623,7 @@
         },
         {
           "code": "1501371",
-          "name": "Design & Analysis of Algorithms",
+          "name": "Design and Analysis of Algorithms",
           "isShared": false
         },
         {
@@ -1632,7 +1637,7 @@
           "isShared": false
         },
         {
-          "code": "1501398",
+          "code": "1501390",
           "name": "Junior Project in AI",
           "isShared": false
         },
@@ -1643,16 +1648,16 @@
         },
         {
           "code": "1501433",
-          "name": "Intro. to Comp. Vision & Image Proc.",
+          "name": "Introduction to Computer Vision and Image Processing",
           "isShared": false
         },
         {
-          "code": "1501435",
+          "code": "1501439",
           "name": "Natural Language Processing",
           "isShared": false
         },
         {
-          "code": "1501440",
+          "code": "1501447",
           "name": "Deep Learning Applications",
           "isShared": false
         },
@@ -1717,7 +1722,7 @@
           "isShared": false
         },
         {
-          "code": "1501454",
+          "code": "1501448",
           "name": "Quantum Computing",
           "isShared": false
         },
@@ -1728,11 +1733,11 @@
         },
         {
           "code": "1501465",
-          "name": "Development of Web Applica.",
+          "name": "Development of Web Applications",
           "isShared": false
         },
         {
-          "code": "1501497",
+          "code": "1501485",
           "name": "Topics in AI I",
           "isShared": false
         },
@@ -2256,8 +2261,8 @@
           "isShared": false
         },
         {
-          "code": "1501100",
-          "name": "Introduction to IT (English)",
+          "code": "1501110",
+          "name": "AI and Digital Technologies (English)",
           "isShared": false
         },
         {
@@ -2535,7 +2540,7 @@
           "isShared": false
         },
         {
-          "code": "0303228",
+          "code": "1503228",
           "name": "E-Business",
           "isShared": false
         },
@@ -2550,7 +2555,7 @@
           "isShared": false
         },
         {
-          "code": "0302354",
+          "code": "0302454",
           "name": "Internship in Business I",
           "isShared": false
         },
@@ -2561,7 +2566,7 @@
         },
         {
           "code": "0302280",
-          "name": "Public SectorManagement*",
+          "name": "Public Sector Management*",
           "isShared": false
         },
         {
@@ -2576,12 +2581,12 @@
         },
         {
           "code": "0302360",
-          "name": "Human ResourceManagement",
+          "name": "Human Resources Management",
           "isShared": false
         },
         {
           "code": "0302364",
-          "name": "Human Resource Development",
+          "name": "Human Resources Development",
           "isShared": false
         },
         {
@@ -2735,17 +2740,17 @@
           "isShared": false
         },
         {
-          "code": "0302385",
+          "code": "0302387",
           "name": "Marketing Analytics",
           "isShared": false
         },
         {
-          "code": "0302386",
+          "code": "0302388",
           "name": "Product and Brand Management",
           "isShared": false
         },
         {
-          "code": "0302387",
+          "code": "0302389",
           "name": "Retail Management",
           "isShared": false
         },
@@ -2817,11 +2822,6 @@
         {
           "code": "0301325",
           "name": "International Accounting",
-          "isShared": false
-        },
-        {
-          "code": "0301329",
-          "name": "Accounting Internship",
           "isShared": false
         },
         {
@@ -2983,6 +2983,11 @@
           "code": "0302200",
           "name": "Fundamentals of Innovation and Entrepreneurship",
           "isShared": true
+        },
+        {
+          "code": "0302354",
+          "name": "Internship in Business I",
+          "isShared": false
         }
       ]
     },
@@ -3097,7 +3102,7 @@
           "isShared": false
         },
         {
-          "code": "0303228",
+          "code": "1503228",
           "name": "E-Business",
           "isShared": false
         },
@@ -3112,7 +3117,7 @@
           "isShared": false
         },
         {
-          "code": "0302354",
+          "code": "0302454",
           "name": "Internship in Business I",
           "isShared": false
         },
@@ -3138,7 +3143,7 @@
         },
         {
           "code": "0302360",
-          "name": "Human ResourceManagement",
+          "name": "Human Resources Management",
           "isShared": false
         },
         {
@@ -3207,7 +3212,7 @@
           "isShared": false
         },
         {
-          "code": "0302381",
+          "code": "0302378",
           "name": "Social Entrepreneurship",
           "isShared": false
         },
@@ -3272,17 +3277,17 @@
           "isShared": false
         },
         {
-          "code": "0302385",
+          "code": "0302387",
           "name": "Marketing Analytics",
           "isShared": false
         },
         {
-          "code": "0302386",
+          "code": "0302388",
           "name": "Product and Brand Management",
           "isShared": false
         },
         {
-          "code": "0302387",
+          "code": "0302389",
           "name": "Retail Management",
           "isShared": false
         },
@@ -3379,11 +3384,6 @@
         {
           "code": "0301325",
           "name": "International Accounting",
-          "isShared": false
-        },
-        {
-          "code": "0301329",
-          "name": "Accounting Internship",
           "isShared": false
         },
         {
@@ -3539,11 +3539,6 @@
         {
           "code": "1503446",
           "name": "Decision Support Systems",
-          "isShared": false
-        },
-        {
-          "code": "030225",
-          "name": "Legal Environment of Business",
           "isShared": false
         },
         {
@@ -3664,7 +3659,7 @@
           "isShared": false
         },
         {
-          "code": "0303228",
+          "code": "1503228",
           "name": "E-Business",
           "isShared": false
         },
@@ -3679,7 +3674,7 @@
           "isShared": false
         },
         {
-          "code": "0302354",
+          "code": "0302454",
           "name": "Internship in Business I",
           "isShared": false
         },
@@ -3690,7 +3685,7 @@
         },
         {
           "code": "0302280",
-          "name": "Public SectorManagement*",
+          "name": "Public Sector Management*",
           "isShared": false
         },
         {
@@ -3764,17 +3759,17 @@
           "isShared": false
         },
         {
-          "code": "0302385",
+          "code": "0302387",
           "name": "Marketing Analytics",
           "isShared": false
         },
         {
-          "code": "0302386",
+          "code": "0302388",
           "name": "Product and Brand Management",
           "isShared": false
         },
         {
-          "code": "0302387",
+          "code": "0302389",
           "name": "Retail Management",
           "isShared": false
         },
@@ -3944,11 +3939,6 @@
           "isShared": false
         },
         {
-          "code": "0301329",
-          "name": "Accounting Internship",
-          "isShared": false
-        },
-        {
           "code": "0301343",
           "name": "Accounting Information Systems",
           "isShared": false
@@ -4104,9 +4094,19 @@
           "isShared": false
         },
         {
+          "code": "0303228",
+          "name": "E-Business",
+          "isShared": false
+        },
+        {
           "code": "0302200",
           "name": "Fundamentals of Innovation and Entrepreneurship",
           "isShared": true
+        },
+        {
+          "code": "0302354",
+          "name": "Internship in Business I",
+          "isShared": false
         }
       ]
     },
@@ -5864,8 +5864,8 @@
           "isShared": true
         },
         {
-          "code": "1401100",
-          "name": "Introduction to IT (English)",
+          "code": "1501110",
+          "name": "AI and Digital Technologies (English)",
           "isShared": false
         },
         {
@@ -6476,7 +6476,7 @@
           "isShared": false
         },
         {
-          "code": "0303228",
+          "code": "1503228",
           "name": "E-Business",
           "isShared": false
         },
@@ -6491,93 +6491,88 @@
           "isShared": false
         },
         {
-          "code": "308232",
+          "code": "0308232",
           "name": "Sustainability and Global Challenges",
           "isShared": false
         },
         {
-          "code": "308254",
+          "code": "0308254",
           "name": "Environmental Economics",
           "isShared": false
         },
         {
-          "code": "308456",
+          "code": "0308456",
           "name": "Energy Economics",
           "isShared": false
         },
         {
-          "code": "308457",
+          "code": "0308457",
           "name": "Welfare Economics",
           "isShared": false
         },
         {
-          "code": "308351",
+          "code": "0308351",
           "name": "Intermediate Microeconomics",
           "isShared": false
         },
         {
-          "code": "308352",
+          "code": "0308352",
           "name": "Intermediate Macroeconomics",
           "isShared": false
         },
         {
-          "code": "308355",
+          "code": "0308355",
           "name": "Introduction to Econometrics",
           "isShared": false
         },
         {
-          "code": "308469",
+          "code": "0308451",
           "name": "Internship 1",
           "isShared": false
         },
         {
-          "code": "308470",
+          "code": "0308458",
           "name": "Internship 2",
           "isShared": false
         },
         {
-          "code": "308459",
+          "code": "0308459",
           "name": "Cost benefit analysis",
           "isShared": false
         },
         {
-          "code": "308253",
+          "code": "0308253",
           "name": "Managerial Economics",
           "isShared": false
         },
         {
-          "code": "308454",
+          "code": "0308454",
           "name": "International Monetary Economics",
           "isShared": false
         },
         {
-          "code": "308336",
+          "code": "0308336",
           "name": "Economics of Health Care",
           "isShared": false
         },
         {
-          "code": "308255",
+          "code": "0308255",
           "name": "Principles of Islamic Economics",
           "isShared": false
         },
         {
-          "code": "308453",
+          "code": "0308453",
           "name": "International Economics",
           "isShared": false
         },
         {
-          "code": "308452",
+          "code": "0308452",
           "name": "Public Economics",
           "isShared": false
         },
         {
-          "code": "308450",
-          "name": "Money and Banking",
-          "isShared": false
-        },
-        {
           "code": "0302360",
-          "name": "Human Resource Management*",
+          "name": "Human Resources Management*",
           "isShared": false
         },
         {
@@ -6781,17 +6776,17 @@
           "isShared": false
         },
         {
-          "code": "0302385",
+          "code": "0302387",
           "name": "Marketing Analytics",
           "isShared": false
         },
         {
-          "code": "0302386",
+          "code": "0302388",
           "name": "Product and Brand Management",
           "isShared": false
         },
         {
-          "code": "0302387",
+          "code": "0302389",
           "name": "Retail Management",
           "isShared": false
         },
@@ -6818,11 +6813,6 @@
         {
           "code": "0301325",
           "name": "International Accounting",
-          "isShared": false
-        },
-        {
-          "code": "0301329",
-          "name": "Accounting Internship",
           "isShared": false
         },
         {
@@ -7860,7 +7850,7 @@
           "isShared": false
         },
         {
-          "code": "0303228",
+          "code": "1503228",
           "name": "E-Business",
           "isShared": false
         },
@@ -7935,7 +7925,7 @@
           "isShared": false
         },
         {
-          "code": "0308451",
+          "code": "0308460",
           "name": "Sustainable Finance",
           "isShared": false
         },
@@ -7951,7 +7941,7 @@
         },
         {
           "code": "0302360",
-          "name": "Human Resource Management*",
+          "name": "Human Resources Management*",
           "isShared": false
         },
         {
@@ -8021,7 +8011,7 @@
         },
         {
           "code": "0302460",
-          "name": "International Human Resource Management",
+          "name": "International Human Resources Management",
           "isShared": false
         },
         {
@@ -8155,17 +8145,17 @@
           "isShared": false
         },
         {
-          "code": "0302385",
+          "code": "0302387",
           "name": "Marketing Analytics",
           "isShared": false
         },
         {
-          "code": "0302386",
+          "code": "0302388",
           "name": "Product and Brand Management",
           "isShared": false
         },
         {
-          "code": "0302387",
+          "code": "0302389",
           "name": "Retail Management",
           "isShared": false
         },
@@ -8192,11 +8182,6 @@
         {
           "code": "0301325",
           "name": "International Accounting",
-          "isShared": false
-        },
-        {
-          "code": "0301329",
-          "name": "Accounting Internship",
           "isShared": false
         },
         {
@@ -8320,16 +8305,6 @@
           "isShared": false
         },
         {
-          "code": "0308458",
-          "name": "Internship in Finance 1",
-          "isShared": false
-        },
-        {
-          "code": "0308459",
-          "name": "Internship in Finance II",
-          "isShared": false
-        },
-        {
           "code": "0308150",
           "name": "Introduction to Economics for NBS",
           "isShared": false
@@ -8347,6 +8322,26 @@
         {
           "code": "0308456",
           "name": "Energy Economics",
+          "isShared": false
+        },
+        {
+          "code": "0308457",
+          "name": "Welfare Economics",
+          "isShared": false
+        },
+        {
+          "code": "0308451",
+          "name": "Internship 1",
+          "isShared": false
+        },
+        {
+          "code": "0308458",
+          "name": "Internship 2",
+          "isShared": false
+        },
+        {
+          "code": "0308459",
+          "name": "Cost Benefit Analysis",
           "isShared": false
         },
         {
@@ -9811,8 +9806,8 @@
           "isShared": true
         },
         {
-          "code": "1501100",
-          "name": "Introduction to IT",
+          "code": "1501110",
+          "name": "AI and Digital Technologies (English)",
           "isShared": false
         },
         {
@@ -12032,7 +12027,153 @@
       "id": "uos-nursing",
       "name": "Bachelor of Science in Nursing",
       "sourceUrl": "https://www.sharjah.ac.ae/Academics/Degree/Undergraduate/Nursing",
-      "courses": []
+      "courses": [
+        {
+          "code": "0500150",
+          "name": "Biology",
+          "isShared": false
+        },
+        {
+          "code": "0500160",
+          "name": "Human Anatomy & Physiology",
+          "isShared": false
+        },
+        {
+          "code": "0501257",
+          "name": "General Microbiology",
+          "isShared": false
+        },
+        {
+          "code": "0503251",
+          "name": "Physical Assessment",
+          "isShared": false
+        },
+        {
+          "code": "0503252",
+          "name": "Advanced Communication",
+          "isShared": false
+        },
+        {
+          "code": "0503253",
+          "name": "Pathophysiology",
+          "isShared": false
+        },
+        {
+          "code": "0503260",
+          "name": "Fundamentals of Nursing",
+          "isShared": false
+        },
+        {
+          "code": "0503261",
+          "name": "Psychosocial Aspects in Health Professions",
+          "isShared": false
+        },
+        {
+          "code": "0503262",
+          "name": "Clinical Pharmacology",
+          "isShared": false
+        },
+        {
+          "code": "0503263",
+          "name": "Health education & health promotion",
+          "isShared": false
+        },
+        {
+          "code": "0504252",
+          "name": "Biostatistics",
+          "isShared": false
+        },
+        {
+          "code": "0503350",
+          "name": "Adult Health Nursing (1)",
+          "isShared": false
+        },
+        {
+          "code": "0503351",
+          "name": "Adult Health Nursing Practicum (1)",
+          "isShared": false
+        },
+        {
+          "code": "0503352",
+          "name": "Maternity and Newborn Health Nursing",
+          "isShared": false
+        },
+        {
+          "code": "0503353",
+          "name": "Maternity and Newborn Health Nursing / Practicum",
+          "isShared": false
+        },
+        {
+          "code": "0503361",
+          "name": "Adult Health Nursing / Practicum (2)",
+          "isShared": false
+        },
+        {
+          "code": "0503362",
+          "name": "Pediatric Health Nursing",
+          "isShared": false
+        },
+        {
+          "code": "0503363",
+          "name": "Pediatric Health Nursing / Practicum",
+          "isShared": false
+        },
+        {
+          "code": "0503364",
+          "name": "Adult Health Nursing (2)",
+          "isShared": false
+        },
+        {
+          "code": "0500450",
+          "name": "Introduction to Research",
+          "isShared": false
+        },
+        {
+          "code": "0503451",
+          "name": "Critical Care Nursing / Practicum",
+          "isShared": false
+        },
+        {
+          "code": "0503452",
+          "name": "Family and Community Health Nursing",
+          "isShared": false
+        },
+        {
+          "code": "0503453",
+          "name": "Family and Community Health Nursing / Practicum",
+          "isShared": false
+        },
+        {
+          "code": "0503454",
+          "name": "Critical Care Nursing",
+          "isShared": false
+        },
+        {
+          "code": "0503460",
+          "name": "Mental Health Nursing",
+          "isShared": false
+        },
+        {
+          "code": "0503461",
+          "name": "Mental Health Nursing / Practicum",
+          "isShared": false
+        },
+        {
+          "code": "0503462",
+          "name": "Ethical and Legal Issues in Health Professions",
+          "isShared": false
+        },
+        {
+          "code": "0503468",
+          "name": "ResearchProject",
+          "isShared": false
+        },
+        {
+          "code": "0503463",
+          "name": "Consolidation of Nursing Practice",
+          "isShared": false
+        }
+      ]
     },
     {
       "id": "uos-petroleum-geosciences-and-remote-sensing",
@@ -13859,7 +14000,7 @@
           "isShared": false
         },
         {
-          "code": "0303228",
+          "code": "1503228",
           "name": "E-Business",
           "isShared": false
         },
@@ -13909,12 +14050,12 @@
           "isShared": false
         },
         {
-          "code": "0302447",
+          "code": "0302452",
           "name": "Internship in SCM I",
           "isShared": false
         },
         {
-          "code": "0302448",
+          "code": "0302453",
           "name": "Internship in SCM II",
           "isShared": false
         },
@@ -13939,18 +14080,18 @@
           "isShared": false
         },
         {
-          "code": "302348",
+          "code": "0302348",
           "name": "International Logistics",
           "isShared": false
         },
         {
-          "code": "302349",
+          "code": "0302349",
           "name": "Logistics Cost Management",
           "isShared": false
         },
         {
           "code": "0302360",
-          "name": "Human Resource Management*",
+          "name": "Human Resources Management*",
           "isShared": false
         },
         {
@@ -14074,17 +14215,17 @@
           "isShared": false
         },
         {
-          "code": "0302385",
+          "code": "0302387",
           "name": "Marketing Analytics",
           "isShared": false
         },
         {
-          "code": "0302386",
+          "code": "0302388",
           "name": "Product and Brand Management",
           "isShared": false
         },
         {
-          "code": "0302387",
+          "code": "0302389",
           "name": "Retail Management",
           "isShared": false
         },
@@ -14146,11 +14287,6 @@
         {
           "code": "0301325",
           "name": "International Accounting",
-          "isShared": false
-        },
-        {
-          "code": "0301329",
-          "name": "Accounting Internship",
           "isShared": false
         },
         {
@@ -14307,21 +14443,6 @@
           "code": "0302200",
           "name": "Fundamentals of Innovation and Entrepreneurship",
           "isShared": true
-        },
-        {
-          "code": "0309230",
-          "name": "Database Management",
-          "isShared": false
-        },
-        {
-          "code": "0302348",
-          "name": "International Logistics",
-          "isShared": false
-        },
-        {
-          "code": "0302349",
-          "name": "Logistics Cost Management",
-          "isShared": false
         }
       ]
     },
