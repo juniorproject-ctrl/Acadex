@@ -132,6 +132,9 @@ button:disabled { opacity:.5; cursor:not-allowed; }
 .booking-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:20px; }
 .booking-row { background:white; padding:20px; border:1px solid #d6dde3; border-radius:8px; }
 .booking-row>p { margin:8px 0; font-size:14px; }
+.booking-detail { max-width:840px; overflow-wrap:anywhere; }
+.booking-message { margin:0 0 16px; line-height:1.6; }
+.booking-detail>.muted { margin:12px 0; }
 .accept-form { display:flex; align-items:flex-end; gap:12px; margin-top:16px; flex-wrap:wrap; }
 .accept-form label { flex:1; }
 .event-card { padding:0; }

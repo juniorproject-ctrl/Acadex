@@ -17,6 +17,7 @@ import GroupDetail from './pages/GroupDetail';
 import Tutors, { TutorDetail } from './pages/Tutors';
 import Events, { EventDetail } from './pages/Events';
 import Dashboard from './pages/Dashboard';
+import BookingDetail from './pages/BookingDetail';
 import ReportForm from './pages/Reports';
 import Feedback from './pages/Feedback';
 import Messages from './pages/Messages';
@@ -83,6 +84,7 @@ export default function App() {
         <Route path="/events" element={<Layout><Events /></Layout>} />
         <Route path="/events/:id" element={<Layout><EventDetail /></Layout>} />
         <Route path="/dashboard" element={<Protected><Layout><Dashboard /></Layout></Protected>} />
+        <Route path="/bookings/:id" element={<Layout><BookingDetail /></Layout>} />
         <Route path="/report" element={<Protected><Layout><ReportForm /></Layout></Protected>} />
         <Route path="/settings" element={<Protected><Layout><Settings /></Layout></Protected>} />
         <Route path="/accessibility" element={<Protected><Layout><Settings accessibilityOnly /></Layout></Protected>} />
