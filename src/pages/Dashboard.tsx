@@ -1,16 +1,12 @@
 import { useState } from 'react';
 import { AdminDashboard } from './Reports';
 import { Link } from 'react-router-dom';
-import { Check,X,Trash2,Plus,Calendar } from 'lucide-react';
+import { Trash2,Plus,Calendar } from 'lucide-react';
+import BookingRow from '../components/BookingRow';
 import { useCurrentUser } from '../lib/auth';
-import { dateTime,formValues,isTeacher,mutate,timedValues,useResource,type Booking,type DashboardData } from '../lib/community';
-import { ActionStatus,CatalogSelect,CommunityPage,Empty,ErrorBox,External,Field,Submit,useAction } from '../components/CommunityUI';
+import { dateTime,formValues,isTeacher,mutate,timedValues,useResource,type DashboardData } from '../lib/community';
+import { ActionStatus,CatalogSelect,CommunityPage,Empty,ErrorBox,Field,Submit,useAction } from '../components/CommunityUI';
 
-function BookingRow({booking:b,onChange}:{booking:Booking;onChange:()=>void}) {
-  const action=useAction(),user=useCurrentUser(),isTutor=b.tutorId===user?.id;
-  const active=['pending','accepted'].includes(b.status)&&new Date(b.startsAt)>new Date();
-  return <article className="booking-row"><div className="section-heading"><h3>{isTutor?b.student:b.tutor}</h3><span className={'status-badge '+b.status}>{b.status}</span></div><p>{dateTime(b.startsAt)} - {dateTime(b.endsAt)}</p><p><strong>AED {Number(b.price).toFixed(2)} total</strong></p>{!isTutor&&b.status==='accepted'&&Number(b.price)>0&&b.paymentStatus!=='paid'&&active&&<Link className="text-link" to={'/checkout?kind=booking&reference='+b.id}>Pay for session</Link>}{b.paymentStatus&&<p className="muted">Test payment: {b.paymentStatus}</p>}{b.note&&<p className="preserve-lines muted">{b.note}</p>}{b.status==='accepted'&&b.meetingUrl&&<External href={b.meetingUrl}>Open meeting</External>}{active&&<div>{isTutor&&b.status==='pending'&&<form className="accept-form" onSubmit={e=>{e.preventDefault();const meetingUrl=new FormData(e.currentTarget).get('meetingUrl');void action.run(async()=>{await mutate('/tutors/bookings/'+b.id,{status:'accepted',meetingUrl},'PATCH');onChange();},'Booking accepted; student notified.');}}><Field label="Teams / meeting link"><input name="meetingUrl" type="url" required placeholder="https://teams.microsoft.com/..."/></Field><button className="action-button" disabled={action.busy}><Check size={16}/>Accept</button></form>}<div className="flex gap-3 mt-3">{isTutor&&b.status==='pending'&&<button className="secondary-button" disabled={action.busy} onClick={()=>void action.run(async()=>{await mutate('/tutors/bookings/'+b.id,{status:'declined'},'PATCH');onChange();},'Booking declined; student notified.')}><X size={16}/>Decline</button>}<button className="secondary-button" disabled={action.busy} onClick={()=>{if(window.confirm('Cancel this booking?'))void action.run(async()=>{await mutate('/tutors/bookings/'+b.id,{status:'cancelled'},'PATCH');onChange();},'Booking cancelled.');}}>Cancel booking</button></div></div>}<ActionStatus action={action}/></article>;
-}
 export default function Dashboard() {
   const user=useCurrentUser(),result=useResource<DashboardData>('/account/dashboard',15000),action=useAction();
   const tutor=user?.role==='tutor';
