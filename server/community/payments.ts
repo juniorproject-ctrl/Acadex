@@ -52,12 +52,13 @@ export async function reconcileSession(session:Stripe.Checkout.Session,client:St
       if(!item.available){
         await client.refunds.create({payment_intent:intent},{idempotencyKey:'unavailable-'+order.id});
         await connection.execute("UPDATE payment_orders SET status='refunded',payment_intent_id=? WHERE id=?",[intent,order.id]);
-        await notify(connection,order.buyer_id,'Test payment refunded because the item/session became unavailable.','/payments');return;
+        await notify(connection,order.buyer_id,'Test payment refunded because the item/session became unavailable.',order.kind==='booking'?'/bookings/'+order.reference_id:'/payments');return;
       }
       await connection.execute("UPDATE payment_orders SET status='paid',payment_intent_id=? WHERE id=?",[intent,order.id]);
       if(order.kind==='listing')await connection.execute("UPDATE listings SET status='SOLD' WHERE id=?",[order.reference_id]);
-      await notify(connection,order.buyer_id,'Test payment confirmed: '+order.title,'/payments');
-      await notify(connection,order.seller_id,'Test payment received: '+order.title,'/payments');
+      const notificationHref=order.kind==='booking'?'/bookings/'+order.reference_id:'/payments';
+      await notify(connection,order.buyer_id,'Test payment confirmed: '+order.title,notificationHref);
+      await notify(connection,order.seller_id,'Test payment received: '+order.title,notificationHref);
     }else if(session.status==='expired')await connection.execute("UPDATE payment_orders SET status='expired' WHERE id=?",[order.id]);
   });
 }
@@ -66,7 +67,7 @@ export async function refundBooking(connection:PoolConnection,bookingId:string,p
   for(const order of orders){
     await requiredClient(provider).refunds.create({payment_intent:order.payment_intent_id},{idempotencyKey:'cancel-booking-'+order.id});
     await connection.execute("UPDATE payment_orders SET status='refunded' WHERE id=?",[order.id]);
-    await notify(connection,order.buyer_id,'Cancelled tutoring session: test payment refunded.','/payments');
+    await notify(connection,order.buyer_id,'Cancelled tutoring session: test payment refunded.','/bookings/'+bookingId);
   }
 }
 export function paymentWebhook(provider=paymentClient){return asyncHandler(async(req,res)=>{

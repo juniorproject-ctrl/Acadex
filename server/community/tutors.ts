@@ -54,7 +54,7 @@ router.delete('/slots/:id', asyncHandler(async (req,res) => {
     for (const booking of bookings) {
       await refundBooking(connection,booking.id);
       await connection.execute("UPDATE tutor_bookings SET status='cancelled',meeting_url=NULL WHERE id=?",[booking.id]);
-      await notify(connection,booking.student_id,'Your tutor cancelled a session.','/dashboard');
+      await notify(connection,booking.student_id,'Your tutor cancelled a session.','/bookings/'+booking.id);
     }
   });
   res.json({ok:true});
@@ -73,8 +73,8 @@ router.post('/slots/:id/book', asyncHandler(async (req,res) => {
     const active = await rows(connection,"SELECT id FROM tutor_bookings WHERE slot_id=? AND status IN ('pending','accepted')",[slot.id]);
     if (active.length) throw new ApiError(409,'Another student has already requested this slot.');
     await connection.execute('INSERT INTO tutor_bookings (id,slot_id,student_id,note) VALUES (?,?,?,?)',[id,slot.id,userId(req),note]);
-    await notify(connection,slot.tutor_id,'New tutoring booking request.','/dashboard');
-    await notify(connection,userId(req),'Booking requested. Waiting for the tutor to respond.','/dashboard');
+    await notify(connection,slot.tutor_id,'New tutoring booking request.','/bookings/'+id);
+    await notify(connection,userId(req),'Booking requested. Waiting for the tutor to respond.','/bookings/'+id);
   });
   res.status(201).json({id});
 }));
@@ -92,7 +92,7 @@ router.patch('/bookings/:id', asyncHandler(async (req,res) => {
     if (!['pending','accepted'].includes(booking.status) || (status !== 'cancelled' && booking.status !== 'pending') || slot.cancelled || new Date(slot.starts_at).getTime() <= Date.now()) throw new ApiError(409,'This booking can no longer be changed.');
     if(status==='cancelled')await refundBooking(connection,booking.id);
     await connection.execute('UPDATE tutor_bookings SET status=?,meeting_url=? WHERE id=?',[status,meeting,booking.id]);
-    await notify(connection,isTutor ? booking.student_id : slot.tutor_id,`Tutoring booking ${status}.`,'/dashboard');
+    await notify(connection,isTutor ? booking.student_id : slot.tutor_id,`Tutoring booking ${status}.`,'/bookings/'+booking.id);
   });
   res.json({ok:true});
 }));
