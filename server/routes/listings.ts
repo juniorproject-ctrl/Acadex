@@ -6,6 +6,7 @@ import { ApiError, asyncHandler } from '../errors';
 import { requireAuth, type AuthRequest } from '../middleware/auth';
 import { listingUpload } from '../middleware/upload';
 import { rows,transaction } from '../community/shared';
+import { listingCategories } from '../../shared/listingCategories';
 
 type ListingRow = RowDataPacket & {
   id: string; owner_id: string; title: string; description: string; price: number | null; category: string | null;
@@ -14,7 +15,7 @@ type ListingRow = RowDataPacket & {
 };
 type ImageRow = RowDataPacket & { listing_id: string; image_url: string };
 
-const validCategories = ['Textbooks', 'Electronics', 'Supplies', 'Study Setup', 'Lab Equipment'];
+const validCategories: readonly string[] = listingCategories;
 const validConditions = ['New', 'Like New', 'Good', 'Fair'];
 
 function imageUrl(filename: string) {
