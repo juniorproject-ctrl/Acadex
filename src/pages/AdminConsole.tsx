@@ -4,6 +4,7 @@ import {Trash2,EyeOff,Eye,Send,Save} from 'lucide-react';
 import {getCurrentUser} from '../lib/auth';
 import DemoAccountSetup from '../components/DemoAccountSetup';
 import PasswordInput from '../components/PasswordInput';
+import PresentationListingSetup from '../components/PresentationListingSetup';
 import {formValues,mutate,useResource,dateTime} from '../lib/community';
 import {ActionStatus,CommunityPage,Empty,ErrorBox,Field,useAction} from '../components/CommunityUI';
 
@@ -43,6 +44,7 @@ export default function AdminConsole(){
   if(!admin)return <CommunityPage title="Administration" showTabs={false}><Empty>Administrator access required.</Empty></CommunityPage>;
   return <CommunityPage title="Website management" showTabs={false} action={<Link className="text-link" to="/dashboard">Reports and tutor applications</Link>}>
     <div className="community-tabs" role="tablist" aria-label="Administration sections">{[['listings','Listings'],['users','Accounts'],['groups','Study groups'],['events','Events'],['papers','Past papers'],['support','Contact requests'],['demo-accounts','Test accounts'],['audit','Activity log']].map(([id,label])=><button role="tab" aria-selected={tab===id} key={id} onClick={()=>{setTab(id);setQuery('');setDraft('');}}>{label}</button>)}</div>
+    {tab==='listings'&&<PresentationListingSetup reload={result.reload}/>}
     {['listings','users'].includes(tab)&&<form className="filter-bar" onSubmit={e=>{e.preventDefault();setQuery(draft);}}><Field label="Search"><input value={draft} onChange={e=>setDraft(e.target.value)} maxLength={160}/></Field><button className="secondary-button">Search</button></form>}
     <ErrorBox error={result.error}/>{tab==='demo-accounts'?<DemoAccountSetup items={(result.data?.items||[]).filter(item=>typeof item.email==='string'&&item.email.endsWith('@acadex.example'))} reload={result.reload}/>:result.loading?<Empty>Loading...</Empty>:result.data?.items.length?result.data.items.map(item=>tab==='listings'?<ListingRow key={item.id} item={item} reload={result.reload}/>:tab==='users'?<UserRow key={item.id} item={item} reload={result.reload}/>:tab==='support'?<ContactRow key={item.id} item={item} reload={result.reload}/>:['groups','events','papers'].includes(tab)?<ContentRow key={item.id} item={item} kind={tab} reload={result.reload}/>:<article className="detail-row" key={item.id}><div><strong>{item.action.replaceAll('_',' ')}</strong><p>{item.actor} | {dateTime(item.createdAt)}</p><p className="preserve-lines">{item.reason}</p><p className="muted">{item.targetId}</p></div></article>):!result.error&&<Empty>No records found.</Empty>}
   </CommunityPage>;
