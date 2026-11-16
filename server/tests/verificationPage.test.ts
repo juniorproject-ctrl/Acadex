@@ -10,7 +10,7 @@ test('verification opens directly without signup or a saved email',()=>{
   try{
     const html=renderToStaticMarkup(createElement(MemoryRouter,{initialEntries:['/verify']},createElement(VerifyOTP)));
     assert.ok(html.includes('name="email"'));assert.ok(html.includes('name="code"'));
-    assert.ok(html.includes('Send / resend code'));assert.ok(html.includes('href="/"'));assert.ok(!html.includes('/signup'));
+    assert.ok(html.includes('Send / resend code'));assert.ok(html.includes('href="/login"'));assert.ok(!html.includes('/signup'));
   }finally{delete (globalThis as any).sessionStorage;}
 });
 test('administrator Gmail address can be passed to the code screen',()=>{

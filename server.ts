@@ -23,9 +23,8 @@ import messageRoutes from './server/community/messages';
 import adminRoutes from './server/community/admin';
 import supportRoutes from './server/community/support';
 import { bootstrapAdmin } from './server/bootstrapAdmin';
-import { requireAuth } from './server/middleware/auth';
 import { securityHeaders } from './server/middleware/securityHeaders';
-import { verified } from './server/community/shared';
+import { publicBrowsing } from './server/middleware/publicBrowsing';
 import paymentRoutes,{paymentWebhook} from './server/community/payments';
 
 async function startServer() {
@@ -55,7 +54,7 @@ async function startServer() {
     }
   });
   app.use('/api/auth', authRoutes);
-  app.use(['/api/listings', '/api/catalog', '/api/papers', '/api/groups', '/api/tutors', '/api/events'], requireAuth, verified);
+  app.use(['/api/listings', '/api/catalog', '/api/papers', '/api/groups', '/api/tutors', '/api/events'], publicBrowsing);
   app.use('/api/listings', listingRoutes);
   app.use('/api/catalog', catalogRoutes);
   app.use('/api/papers', paperRoutes);

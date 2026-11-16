@@ -19,7 +19,7 @@ router.get('/', asyncHandler(async (req, res) => {
   await academicFilters(req,clauses,values);
   res.json(await page(req, 'SELECT p.id,p.owner_id AS ownerId,p.title,p.academic_year AS academicYear,p.exam_type AS examType,p.created_at AS createdAt,c.name AS course,c.code,u.name AS university', 'FROM past_papers p JOIN courses c ON c.id=p.course_id JOIN universities u ON u.id=c.university_id', clauses, values, 'p.created_at DESC,p.id'));
 }));
-router.get('/:id/download', asyncHandler(async (req, res) => {
+router.get('/:id/download', requireAuth, verified, asyncHandler(async (req, res) => {
   const [paper] = await query<any[]>('SELECT file_name,title FROM past_papers WHERE id=?', [req.params.id]);
   if (!paper) throw new ApiError(404, 'Paper not found.');
   const file = path.join(directory, path.basename(paper.file_name));

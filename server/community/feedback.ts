@@ -8,7 +8,7 @@ import { text, verified } from './shared';
 import {notifyAdminEmail} from '../email';
 
 const router = Router();
-router.post('/', rateLimit({ windowMs: 3600000, limit: 10 }), asyncHandler(async (req, res) => {
+router.post('/', requireAuth, verified, rateLimit({ windowMs: 3600000, limit: 10 }), asyncHandler(async (req, res) => {
   if (!['suggestion', 'problem', 'comment'].includes(req.body.category)) throw new ApiError(400, 'Choose a feedback category.');
   const name = req.body.name ? text(req.body.name, 'Name', 1, 100) : '';
   const message = text(req.body.message, 'Comments', 10, 3000);

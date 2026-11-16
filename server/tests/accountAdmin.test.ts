@@ -77,10 +77,11 @@ test('account security, private admin access and support',{skip:process.env.ACCO
    const mine=await call('/reports/mine',200,2);assert.equal(mine.items[0].replies.length,1);
    const other=await call('/reports/mine',200,3);assert.equal(other.items.some((item:any)=>item.id===r.id),false);
   });
-  await t.test('anonymous contact requests are private and admin replies use stored email',async()=>{
+  await t.test('contact requests require sign-in and admin replies use stored email',async()=>{
    const email=randomUUID()+'@example.test';
-   await call('/support',400,null,{name:'Test',email:'invalid',subject:'Help please',message:'A support request with an invalid email.'});
-   await call('/support',201,null,{name:'Test',email,subject:'Contact integration',message:'Please help with signing into my account.'});
+   await call('/support',401,null,{name:'Test',email,subject:'Contact integration',message:'Please help with signing into my account.'});
+   await call('/support',400,2,{name:'Test',email:'invalid',subject:'Help please',message:'A support request with an invalid email.'});
+   await call('/support',201,2,{name:'Test',email,subject:'Contact integration',message:'Please help with signing into my account.'});
    const [item]=await query<any[]>('SELECT id FROM support_messages WHERE email=?',[email]);contactIds.push(item.id);
    await call('/admin/support',403,2);
    await call('/admin/support/'+item.id+'/reply',200,0,{body:'Please try the password reset page.',email:'ignore@example.test'});

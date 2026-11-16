@@ -13,7 +13,15 @@ test('support and policy pages render publicly without a marketplace session',()
    assert.ok(html.includes('>'+title+'</h1>'),page);
    assert.ok(html.includes('href="/contact"'),page);
    assert.ok(!html.includes('href="/browse"'),page);
-   if(page==='contact'){assert.ok(html.includes('name="email"'));assert.ok(html.includes('name="message"'));}
+   if(page==='contact'){assert.ok(html.includes('Sign in to contact us'));assert.ok(!html.includes('name="message"'));}
   }
+ }finally{delete (globalThis as any).localStorage;}
+});
+
+test('signed-in users can access the contact form',()=>{
+ Object.defineProperty(globalThis,'localStorage',{configurable:true,value:{getItem:(key:string)=>key==='acadex_access_token'?'test-token':key==='acadex_session_user'?JSON.stringify({id:'test-user',name:'Test',email:'test@university.ac.ae',role:'student'}):null}});
+ try{
+  const html=renderToStaticMarkup(createElement(MemoryRouter,null,createElement(InformationPage,{page:'contact'})));
+  assert.ok(html.includes('name="email"'));assert.ok(html.includes('name="message"'));
  }finally{delete (globalThis as any).localStorage;}
 });

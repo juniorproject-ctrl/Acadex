@@ -22,14 +22,15 @@ test('feedback submission and private administrator review', { skip: process.env
   try {
     for (const u of [admin, student]) await query('INSERT INTO users (id,name,email,password_hash,role,is_verified) VALUES (?,?,?,?,?,TRUE)', [u.id, u.name, u.email, 'not-a-login-password', u.role]);
     const adminToken = createAccessToken(admin), studentToken = createAccessToken(student);
-    await t.test('guests can submit without a university account', async () => {
-      await call('POST', '/feedback', 201, { category: 'suggestion', name: marker, message: 'Please add more past papers.' });
+    await t.test('feedback submission requires a verified account', async () => {
+      await call('POST', '/feedback', 401, { category: 'suggestion', name: marker, message: 'Please add more past papers.' });
+      await call('POST', '/feedback', 201, { category: 'suggestion', name: marker, message: 'Please add more past papers.' },studentToken);
       const [entry] = await query<any[]>('SELECT * FROM feedback WHERE name=?', [marker]);
       assert.equal(entry.status, 'new'); assert.equal(entry.category, 'suggestion');
     });
     await t.test('invalid categories and short comments are rejected', async () => {
-      await call('POST', '/feedback', 400, { category: 'other', message: 'A sufficiently long comment.' });
-      await call('POST', '/feedback', 400, { category: 'problem', message: 'short' });
+      await call('POST', '/feedback', 400, { category: 'other', message: 'A sufficiently long comment.' },studentToken);
+      await call('POST', '/feedback', 400, { category: 'problem', message: 'short' },studentToken);
     });
     await t.test('guests and students cannot read submissions or review them', async () => {
       await call('GET', '/feedback', 401);
