@@ -8,6 +8,7 @@ import {requireAuth,type AuthRequest} from '../middleware/auth';
 import {notify,rows,text,transaction,userId,verified} from './shared';
 import {sendEmail} from '../email';
 import {demoDefinitions,demoId,syncDemoAccounts,checkDemoAccounts} from '../demoAccounts';
+import {presentationListingStatus,setPresentationListings} from '../presentationListings';
 
 export function createAdminRouter(sender=sendEmail){
 const router=Router();
@@ -19,6 +20,20 @@ async function audit(c:any,req:any,action:string,target:string,reason:string){
 router.get('/listings',asyncHandler(async(req,res)=>{
   const search=typeof req.query.q==='string'?req.query.q.trim().slice(0,160):'';
   res.json({items:await query('SELECT l.id,l.title,l.price,l.status,l.is_hidden AS hidden,u.name AS seller FROM listings l JOIN users u ON u.id=l.owner_id WHERE l.title LIKE ? ORDER BY l.created_at DESC LIMIT 100',['%'+search+'%'])});
+}));
+router.get('/presentation-listings',asyncHandler(async(_req,res)=>{
+ res.json(await transaction(presentationListingStatus));
+}));
+router.post('/presentation-listings',rateLimit({windowMs:900000,limit:5}),asyncHandler(async(req,res)=>{
+ if(demoDefinitions.some(([key])=>demoId(key)===userId(req)))throw new ApiError(403,'Use your real administrator account to manage presentation content.');
+ if(req.body.mode!=='restore'&&req.body.mode!=='hide')throw new ApiError(400,'Choose restore or hide.');
+ const result=await transaction(async c=>{
+  const [actor]=await rows(c,'SELECT password_hash FROM users WHERE id=? FOR UPDATE',[userId(req)]);
+  if(typeof req.body.currentPassword!=='string'||!await bcrypt.compare(req.body.currentPassword,actor.password_hash))throw new ApiError(400,'Your current administrator password is incorrect.');
+  const status=await setPresentationListings(c,req.body.mode);
+  await audit(c,req,req.body.mode+'_presentation_listings','presentation_listings_v1','Administrator managed the fictional presentation collection.');
+  return status;
+ });res.setHeader('Cache-Control','no-store');res.json(result);
 }));
 router.post('/demo-accounts',rateLimit({windowMs:900000,limit:5,message:{error:'Too many test-account setup attempts. Try again later.'}}),asyncHandler(async(req,res)=>{
  if(demoDefinitions.some(([key])=>demoId(key)===userId(req)))throw new ApiError(403,'Use your real administrator account to manage demo access.');
