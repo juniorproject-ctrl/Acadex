@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { motion } from 'motion/react';
-import BrandLogo from '../components/BrandLogo';
 import { api } from '../lib/api';
 import { getAllowedUniversityEmailMessage, getPasswordMessage, isAllowedUniversityEmail, isStrongPassword } from '../lib/emailValidation';
+import PasswordInput from '../components/PasswordInput';
 
 export default function SignUp() {
   const [name, setName] = useState('');
@@ -32,21 +31,17 @@ export default function SignUp() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4">
-      <div className="mb-6"><BrandLogo size="lg" /></div>
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="auth-container">
+      <div className="auth-container">
         <h2 className="text-brand-cream text-3xl font-bold text-center mb-2">Sign Up</h2>
         <p className="text-brand-cream text-center opacity-80 mb-8">Please enter your details to sign up.</p>
         <form onSubmit={handleSubmit} className="space-y-6">
           {error && <div className="bg-red-100 text-red-600 p-3 rounded-lg text-xs font-bold text-center">{error}</div>}
-          <div className="space-y-2"><label className="text-brand-cream font-medium block">Name</label><input type="text" placeholder="Enter your name" className="input-field" value={name} onChange={(event) => setName(event.target.value)} required disabled={loading} /></div>
-          <div className="space-y-2"><label className="text-brand-cream font-medium block">Email</label><input type="email" placeholder="Enter your university email" className="input-field" value={email} onChange={(event) => setEmail(event.target.value)} required disabled={loading} /></div>
-          <div className="space-y-2"><label className="text-brand-cream font-medium block">Password</label><input type="password" placeholder="At least 8 characters, number and symbol" className="input-field" value={password} onChange={(event) => setPassword(event.target.value)} required disabled={loading} /></div>
+          <div className="space-y-2"><label htmlFor="signup-name" className="text-brand-cream font-medium block">Name</label><input id="signup-name" type="text" autoComplete="name" placeholder="Enter your name" className="input-field" value={name} onChange={(event) => setName(event.target.value)} required disabled={loading} /></div>
+          <div className="space-y-2"><label htmlFor="signup-email" className="text-brand-cream font-medium block">Email</label><input id="signup-email" type="email" autoComplete="email" placeholder="Enter your university email" className="input-field" value={email} onChange={(event) => setEmail(event.target.value)} required disabled={loading} /></div>
+          <div className="space-y-2"><label htmlFor="signup-password" className="text-brand-cream font-medium block">Password</label><PasswordInput id="signup-password" autoComplete="new-password" aria-describedby="signup-password-hint" placeholder="Create a password" className="input-field" value={password} onChange={(event) => setPassword(event.target.value)} required disabled={loading} /><p id="signup-password-hint" className="text-xs text-brand-light-navy">At least 8 characters, including a number and a symbol.</p></div>
           <button type="submit" disabled={loading} className="w-full btn-primary mt-6">{loading ? 'Sending code...' : 'Sign up'}</button>
           <p className="text-center text-brand-cream text-sm mt-8">Already have an account? <Link to="/login" className="font-bold underline">Log in</Link></p>
         </form>
-      </motion.div>
-      <div className="flex flex-wrap justify-center gap-4 mt-4 text-sm"><Link to="/terms-of-service" className="text-link">Terms of service</Link><Link to="/privacy-policy" className="text-link">Privacy policy</Link><Link to="/contact" className="text-link">Contact us</Link></div>
-    </div>
+      </div>
   );
 }
