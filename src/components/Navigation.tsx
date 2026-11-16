@@ -7,11 +7,13 @@ import BrandLogo from './BrandLogo';
 import AccountMenu from './AccountMenu';
 import { getCurrentUser,updateSessionUser } from '../lib/auth';
 import { api } from '../lib/api';
+import {loginUrl} from '../lib/loginRedirect';
 
 export default function Navigation() {
   const location = useLocation();
-  const isAuthPage = ['/', '/login', '/signup', '/verify'].includes(location.pathname);
+  const isAuthPage = ['/login', '/signup', '/verify','/forgot-password'].includes(location.pathname);
   const [currentUser,setCurrentUser] = useState(getCurrentUser);
+  useEffect(()=>{const update=()=>setCurrentUser(getCurrentUser());window.addEventListener('acadex-session',update);return()=>window.removeEventListener('acadex-session',update);},[]);
   useEffect(()=>{if(!getCurrentUser())return;let active=true;api.me().then(({user})=>{if(active){setCurrentUser(user);updateSessionUser(user);}}).catch(()=>{});return()=>{active=false;};},[location.pathname]);
   const [menu,setMenu] = useState(false);
   const notifications = useResource<NotificationData>(currentUser ? '/account/notifications' : null, 30000);
@@ -44,7 +46,7 @@ export default function Navigation() {
             {currentUser&&<Link to="/notifications" className="icon-button relative" title="Notifications" aria-label={`Notifications, ${notifications.data?.unread||0} unread`}><Bell size={21}/>{!!notifications.data?.unread&&<span className="notification-count">{notifications.data.unread>99?'99+':notifications.data.unread}</span>}</Link>}
             <button className="icon-button mobile-menu-button" aria-label="Toggle navigation" aria-expanded={menu} onClick={()=>setMenu(!menu)}>{menu?<X size={21}/>:<Menu size={21}/>}</button>
             {currentUser&&<AccountMenu/>}
-            {!currentUser&&<Link to="/" className="text-link">Sign in</Link>}
+            {!currentUser&&<Link to={loginUrl(location.pathname+location.search)} className="text-link">Sign in</Link>}
           </div>
         </div>
         {menu&&<div className="mobile-navigation"><Link to="/home">Home</Link><Link to="/browse">Browse Listings</Link><Link to="/post">Post a Listing</Link><Link to="/community">Community</Link><Link to="/feedback">Feedback</Link>{currentUser&&<Link to="/dashboard">Dashboard / My Learning</Link>}</div>}

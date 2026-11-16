@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate,useLocation } from 'react-router-dom';
 import Navigation from './components/Navigation';
 import Footer from './components/Footer';
 import Home from './pages/Home';
@@ -11,6 +11,7 @@ import ForgotPassword from './pages/ForgotPassword';
 import SignUp from './pages/SignUp';
 import VerifyOTP from './pages/VerifyOTP';
 import { hasSession } from './lib/auth';
+import { loginUrl } from './lib/loginRedirect';
 import PastPapers from './pages/PastPapers';
 import StudyGroups from './pages/StudyGroups';
 import GroupDetail from './pages/GroupDetail';
@@ -34,20 +35,22 @@ import Payments,{Checkout} from './pages/Payments';
 import { applyAccessibility } from './lib/accessibility';
 
 // Layout wrapper for pages that show Nav and Footer
-function Layout({ children }: { children: React.ReactNode }) {
-  return (
-    <Protected><div className="min-h-screen flex flex-col bg-background-soft">
+function Layout({ children,privatePage=false }: { children: React.ReactNode;privatePage?:boolean }) {
+  const content=(
+    <div className="min-h-screen flex flex-col bg-background-soft">
       <Navigation />
       <main className="flex-grow">
         {children}
       </main>
       <Footer />
-    </div></Protected>
+    </div>
   );
+  return privatePage?<Protected>{content}</Protected>:content;
 }
 
 function Protected({ children }: { children: React.ReactNode }) {
-  return hasSession() ? <>{children}</> : <Navigate to="/" replace />;
+  const location=useLocation();
+  return hasSession() ? <>{children}</> : <Navigate to={loginUrl(location.pathname+location.search+location.hash)} replace />;
 }
 
 export default function App() {
@@ -56,8 +59,8 @@ export default function App() {
     <Router>
       <Routes>
         {/* Auth Routes */}
-        <Route path="/" element={<SignIn />} />
-        <Route path="/login" element={<Navigate to="/" replace />} />
+        <Route path="/" element={<Layout><Home /></Layout>} />
+        <Route path="/login" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/verify" element={<VerifyOTP />} />
@@ -66,14 +69,14 @@ export default function App() {
         {/* Main App Routes */}
         <Route path="/home" element={<Layout><Home /></Layout>} />
         <Route path="/feedback" element={<Feedback />} />
-        <Route path="/messages" element={<Layout><Messages /></Layout>} />
-        <Route path="/messages/:id" element={<Layout><Messages /></Layout>} />
+        <Route path="/messages" element={<Layout privatePage><Messages /></Layout>} />
+        <Route path="/messages/:id" element={<Layout privatePage><Messages /></Layout>} />
         <Route path="/browse" element={<Layout><Browse /></Layout>} />
         <Route path="/listings/:id" element={<Layout><ListingDetail /></Layout>} />
         <Route path="/post" element={<Protected><Layout><PostListing /></Layout></Protected>} />
-        <Route path="/my-listings" element={<Layout><MyListings /></Layout>} />
-        <Route path="/my-reports" element={<Layout><MyReports /></Layout>} />
-        <Route path="/admin" element={<Layout><AdminConsole /></Layout>} />
+        <Route path="/my-listings" element={<Layout privatePage><MyListings /></Layout>} />
+        <Route path="/my-reports" element={<Layout privatePage><MyReports /></Layout>} />
+        <Route path="/admin" element={<Layout privatePage><AdminConsole /></Layout>} />
         <Route path="/community" element={<Layout><Community /></Layout>} />
         <Route path="/search" element={<Layout><Community search /></Layout>} />
         <Route path="/past-papers" element={<Layout><PastPapers /></Layout>} />
@@ -84,7 +87,7 @@ export default function App() {
         <Route path="/events" element={<Layout><Events /></Layout>} />
         <Route path="/events/:id" element={<Layout><EventDetail /></Layout>} />
         <Route path="/dashboard" element={<Protected><Layout><Dashboard /></Layout></Protected>} />
-        <Route path="/bookings/:id" element={<Layout><BookingDetail /></Layout>} />
+        <Route path="/bookings/:id" element={<Layout privatePage><BookingDetail /></Layout>} />
         <Route path="/report" element={<Protected><Layout><ReportForm /></Layout></Protected>} />
         <Route path="/settings" element={<Protected><Layout><Settings /></Layout></Protected>} />
         <Route path="/accessibility" element={<Protected><Layout><Settings accessibilityOnly /></Layout></Protected>} />
@@ -96,7 +99,7 @@ export default function App() {
         <Route path="/catalog" element={<Protected><Layout><CourseCatalog /></Layout></Protected>} />
 
         {/* Fallback */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<Navigate to="/home" replace />} />
       </Routes>
     </Router>
   );

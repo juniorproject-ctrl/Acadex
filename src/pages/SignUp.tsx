@@ -43,7 +43,7 @@ export default function SignUp() {
           <div className="space-y-2"><label className="text-brand-cream font-medium block">Email</label><input type="email" placeholder="Enter your university email" className="input-field" value={email} onChange={(event) => setEmail(event.target.value)} required disabled={loading} /></div>
           <div className="space-y-2"><label className="text-brand-cream font-medium block">Password</label><input type="password" placeholder="At least 8 characters, number and symbol" className="input-field" value={password} onChange={(event) => setPassword(event.target.value)} required disabled={loading} /></div>
           <button type="submit" disabled={loading} className="w-full btn-primary mt-6">{loading ? 'Sending code...' : 'Sign up'}</button>
-          <p className="text-center text-brand-cream text-sm mt-8">Already have an account? <Link to="/" className="font-bold underline">Log in</Link></p>
+          <p className="text-center text-brand-cream text-sm mt-8">Already have an account? <Link to="/login" className="font-bold underline">Log in</Link></p>
         </form>
       </motion.div>
       <div className="flex flex-wrap justify-center gap-4 mt-4 text-sm"><Link to="/terms-of-service" className="text-link">Terms of service</Link><Link to="/privacy-policy" className="text-link">Privacy policy</Link><Link to="/contact" className="text-link">Contact us</Link></div>

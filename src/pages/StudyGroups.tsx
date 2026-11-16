@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Plus, Users } from 'lucide-react';
 import { getCurrentUser } from '../lib/auth';
+import {loginUrl} from '../lib/loginRedirect';
 import { formValues,mutate,useResource,type Group,type PageData } from '../lib/community';
 import { ActionStatus,CatalogSelect,CommunityPage,Empty,ErrorBox,Field,Pagination,SearchFilters,Submit,useAction } from '../components/CommunityUI';
 
@@ -9,9 +10,9 @@ export function GroupCard({group:g}:{group:Group}) {return <article className="c
 export default function StudyGroups() {
   const [params]=useSearchParams(), navigate=useNavigate();
   const result=useResource<PageData<Group>>('/groups?'+params.toString());
-  const [create,setCreate]=useState(false),[,setCourse]=useState('');
+  const [create,setCreate]=useState(params.get('create')==='1'&&!!getCurrentUser()),[,setCourse]=useState('');
   const user=getCurrentUser(),action=useAction();
-  return <CommunityPage title="Study Groups" action={user&&<button className="action-button" onClick={()=>setCreate(!create)}><Plus size={18}/>{create?'Close form':'Create group'}</button>}>
+  return <CommunityPage title="Study Groups" action={<button className="action-button" onClick={()=>{if(!user){navigate(loginUrl('/study-groups?create=1'));return;}setCreate(!create);}}><Plus size={18}/>{create?'Close form':'Create group'}</button>}>
     {create&&<form className="editor-form" onSubmit={e=>{e.preventDefault();const body=formValues(e.currentTarget);void action.run(async()=>{const result=await mutate<{id:string}>('/groups',body);navigate('/study-groups/'+result.id);});}}><h2>New study group</h2><div className="form-grid"><CatalogSelect onCourse={setCourse}/><Field label="Group name"><input name="title" minLength={3} maxLength={160} required/></Field></div><Field label="Course topics and group description"><textarea name="description" minLength={20} maxLength={5000} rows={4} required/></Field><Submit busy={action.busy}>Create group</Submit></form>}
     <ActionStatus action={action}/><SearchFilters/><ErrorBox error={result.error}/>{result.loading?<Empty>Loading groups...</Empty>:result.data?.items.length?<div className="community-grid">{result.data.items.map(g=><GroupCard key={g.id} group={g}/>)}</div>:!result.error&&<Empty>No study groups match these filters yet.</Empty>}{result.data&&<Pagination {...result.data}/>}
   </CommunityPage>;

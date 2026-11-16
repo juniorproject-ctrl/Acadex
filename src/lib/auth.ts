@@ -11,14 +11,17 @@ export function updateSessionUser(user: SessionUser) {
 export function setSession(token: string, user: SessionUser) {
   setToken(token);
   localStorage.setItem(USER_KEY, JSON.stringify(user));
+  window.dispatchEvent(new Event('acadex-session'));
 }
 
 export function clearSession() {
   clearToken();
   localStorage.removeItem(USER_KEY);
+  window.dispatchEvent(new Event('acadex-session'));
 }
 
 export function getCurrentUser(): SessionUser | null {
+  if(!getToken())return null;
   const raw = localStorage.getItem(USER_KEY);
   if (!raw) return null;
   try {

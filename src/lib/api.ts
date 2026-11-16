@@ -1,3 +1,4 @@
+import {redirectToSignIn} from './loginRedirect';
 export type SessionUser = { id: string; name: string; email: string; role: string };
 export type ApiListing = {
   id: string; ownerId: string; title: string; subtitle: string; description: string; price: number;
@@ -11,13 +12,14 @@ const TOKEN_KEY = 'acadex_access_token';
 
 export function getToken() { return localStorage.getItem(TOKEN_KEY); }
 export function setToken(token: string) { localStorage.setItem(TOKEN_KEY, token); }
-export function clearToken() { localStorage.removeItem(TOKEN_KEY); }
+export function clearToken() { localStorage.removeItem(TOKEN_KEY);window.dispatchEvent(new Event('acadex-session')); }
 
 export async function downloadPdf(path:string,title:string) {
   const token=getToken();
+  if(!token)redirectToSignIn();
   const response=await fetch('/api'+path,{headers:token?{Authorization:'Bearer '+token}:{},cache:'no-store'});
   if(!response.ok){
-    if(response.status===401)clearToken();
+    if(response.status===401){clearToken();redirectToSignIn();}
     const data=await response.json().catch(()=>null);
     throw new Error(data?.error||'The PDF could not be downloaded. Please try again.');
   }
@@ -34,13 +36,14 @@ export async function downloadPdf(path:string,title:string) {
 export async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const headers = new Headers(options.headers);
   const token = getToken();
+  if(!token&&!['GET','HEAD'].includes((options.method||'GET').toUpperCase())&&!path.startsWith('/auth/'))redirectToSignIn();
   if (token) headers.set('Authorization', `Bearer ${token}`);
   if (options.body && !(options.body instanceof FormData)) headers.set('Content-Type', 'application/json');
   const response = await fetch(`/api${path}`, { ...options, headers });
   const contentType = response.headers.get('content-type') || '';
   const data = contentType.includes('application/json') ? await response.json() : null;
   if (!response.ok) {
-    if (response.status === 401) clearToken();
+    if (response.status === 401) {clearToken();if(!path.startsWith('/auth/'))redirectToSignIn();}
     throw new Error(data?.error || 'The request could not be completed.');
   }
   return data as T;

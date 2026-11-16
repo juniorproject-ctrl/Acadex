@@ -93,7 +93,7 @@ const pages:Record<string,{title:string;sections:string[][]}>={
       ],
       [
         "Who can see it",
-        "Listings and learning profiles are visible to signed-in users. Marketplace conversations are accessible through the app to their participants; authorised operational access to stored data may be necessary for support or investigations. Administrators can review reports, applications and support requests. Do not place sensitive personal information in public descriptions or messages."
+        "Listings, tutor profiles, past-paper descriptions, study-group descriptions and campus events can be browsed without an account. Posting, joining, booking, messaging, downloading papers and submitting feedback or support requests require sign-in. Group chats, recordings and meeting links remain members-only; booking details and marketplace conversations are restricted to their participants. Administrators can review reports, applications and support requests. Do not place sensitive personal information in public descriptions."
       ],
       [
         "Service providers",
@@ -134,7 +134,7 @@ const pages:Record<string,{title:string;sections:string[][]}>={
       ],
       [
         "Reports and support",
-        "Use Report a problem while signed in, then check My reports for status and replies. Contact us is available for general support, including if you cannot sign in. Feedback is for suggestions and testing comments."
+        "Use Report a problem while signed in, then check My reports for status and replies. Contact us and Feedback accept submissions after sign-in. For account access problems, use Forgot password on the sign-in page."
       ],
       [
         "Closing an account",
@@ -147,19 +147,19 @@ const links=[['help','Help center'],['contact','Contact us'],['pricing-guide','P
 export default function InformationPage({page}:{page:string}){
   const content=pages[page],action=useAction();
   return <div className="community-page" style={{maxWidth:900}}>
-    <header className="flex flex-wrap justify-between items-center gap-4 mb-8"><BrandLogo size="sm"/><Link className="text-link" to={getCurrentUser()?'/home':'/'}>{getCurrentUser()?'Back to Acadex':'Sign in'}</Link></header>
+    <header className="flex flex-wrap justify-between items-center gap-4 mb-8"><BrandLogo size="sm"/><Link className="text-link" to={getCurrentUser()?'/home':'/login'}>{getCurrentUser()?'Back to Acadex':'Sign in'}</Link></header>
     <nav aria-label="Support pages" className="flex flex-wrap gap-x-5 gap-y-3 border-b border-gray-200 pb-5 mb-8">{links.map(([path,label])=><Link key={path} to={'/'+path} className="text-link" aria-current={page===path?'page':undefined}>{label}</Link>)}</nav>
     <h1 className="text-3xl mb-6">{page==='contact'?'Contact us':content?.title}</h1>
     {content?.sections.map(([heading,body])=><section className="detail-section" key={heading}><h2>{heading}</h2><p className="preserve-lines leading-relaxed">{body}</p></section>)}
     {page==='contact'&&<><p>Send the Acadex team a support request. Use an email address you can receive replies at.</p>
-    <form className="editor-form" onSubmit={e=>{e.preventDefault();const form=e.currentTarget,body=formValues(form);void action.run(async()=>{await mutate('/support',body);form.reset();},'Your message has been saved for the Acadex team. Replies will be sent to the email you provided.');}}>
+    {getCurrentUser()?<form className="editor-form" onSubmit={e=>{e.preventDefault();const form=e.currentTarget,body=formValues(form);void action.run(async()=>{await mutate('/support',body);form.reset();},'Your message has been saved for the Acadex team. Replies will be sent to the email you provided.');}}>
       <Field label="Name"><input name="name" required minLength={2} maxLength={100} autoComplete="name"/></Field>
       <Field label="Email for replies"><input name="email" type="email" required maxLength={255} autoComplete="email"/></Field>
       <Field label="Subject"><input name="subject" required minLength={3} maxLength={160}/></Field>
       <Field label="Message"><textarea name="message" rows={6} required minLength={10} maxLength={5000}/></Field>
       <p className="muted">Do not send passwords, verification codes, bank details or identity documents. This form is not monitored as an emergency service.</p>
       <button className="action-button" disabled={action.busy}><Send size={17}/>{action.busy?'Sending...':'Send message'}</button><ActionStatus action={action}/>
-    </form></>}
+    </form>:<Link className="action-button" to="/login?returnTo=%2Fcontact">Sign in to contact us</Link>}</>}
   </div>;
 }
 

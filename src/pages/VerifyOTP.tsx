@@ -4,6 +4,7 @@ import {motion} from 'motion/react';
 import BrandLogo from '../components/BrandLogo';
 import {api} from '../lib/api';
 import {setSession} from '../lib/auth';
+import {consumeReturnTo} from '../lib/loginRedirect';
 
 export default function VerifyOTP(){
   const location=useLocation(),navigate=useNavigate();
@@ -30,7 +31,7 @@ export default function VerifyOTP(){
       const result=await api.verifyOtp(email.trim().toLowerCase(),code);
       setSession(result.token,result.user);
       sessionStorage.removeItem('acadex_pending_verification_email');
-      navigate(result.user.role==='admin'?'/dashboard':'/home',{replace:true});
+      navigate(consumeReturnTo(result.user.role==='admin'?'/dashboard':'/home'),{replace:true});
     }catch(error){setError(error instanceof Error?error.message:'Unable to verify this code.');}
     finally{setLoading(false);}
   };
@@ -50,7 +51,7 @@ export default function VerifyOTP(){
         {error&&<p role="alert" className="bg-red-100 text-red-700 p-3 rounded text-sm">{error}</p>}
         {success&&<p role="status" className="bg-green-100 text-green-800 p-3 rounded text-sm">{success}</p>}
         <button className="btn-primary w-full" disabled={loading}>{loading?'Please wait...':'Verify email'}</button>
-        <p className="text-center"><Link to="/" className="underline text-brand-cream">Back to sign in</Link></p>
+        <p className="text-center"><Link to="/login" className="underline text-brand-cream">Back to sign in</Link></p>
       </form>
     </motion.div>
   </div>;

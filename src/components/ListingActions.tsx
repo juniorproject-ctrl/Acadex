@@ -5,6 +5,7 @@ import { getCurrentUser } from '../lib/auth';
 import { mutate } from '../lib/community';
 import { ActionStatus, useAction } from './CommunityUI';
 import ReportLink from './ReportLink';
+import {loginUrl} from '../lib/loginRedirect';
 
 export default function ListingActions({listing}: {listing: ApiListing}) {
   const navigate = useNavigate(), action = useAction();
@@ -20,6 +21,7 @@ export default function ListingActions({listing}: {listing: ApiListing}) {
   </div>;
   return <div className="flex flex-col gap-3 my-3">
     <button className="secondary-button" disabled={action.busy} onClick={() => void action.run(async () => {
+      if(!getCurrentUser()){navigate(loginUrl('/listings/'+listing.id));return;}
       const result = await mutate<{id: string}>('/messages', {listingId: listing.id});
       navigate('/messages/' + result.id);
     }, '')}><MessageCircle size={17}/>Chat with seller</button>

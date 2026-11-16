@@ -7,6 +7,6 @@ export function reportLink(kind:ReportKind,id:string,title:string){
 }
 export default function ReportLink({kind,id,title,ownerId}:{kind:ReportKind;id:string;title:string;ownerId?:string}){
   const user=getCurrentUser();
-  if(!user||user.id===ownerId)return null;
+  if(user&&user.id===ownerId)return null;
   return <Link className="text-link" to={reportLink(kind,id,title)}><Flag size={16}/>Report {kind==='group'?'group':kind}</Link>;
 }

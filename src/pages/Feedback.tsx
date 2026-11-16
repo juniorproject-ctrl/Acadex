@@ -1,6 +1,8 @@
 import { Send } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import BrandLogo from '../components/BrandLogo';
+import {getCurrentUser} from '../lib/auth';
+import {loginUrl} from '../lib/loginRedirect';
 import { ActionStatus, Empty, ErrorBox, Field, useAction } from '../components/CommunityUI';
 import { formValues, mutate, useResource } from '../lib/community';
 
@@ -9,7 +11,7 @@ export default function Feedback() {
   return <div className="community-page" style={{maxWidth: 672}}>
     <div className="mb-8"><BrandLogo size="sm" /></div>
     <header className="community-heading"><h1>Share your feedback</h1></header>
-    <form className="editor-form" onSubmit={e => {
+    {getCurrentUser()?<form className="editor-form" onSubmit={e => {
       e.preventDefault();
       const form = e.currentTarget;
       void action.run(async () => { await mutate('/feedback', formValues(form)); form.reset(); }, 'Thank you! Your feedback has been sent to the Acadex team.');
@@ -20,8 +22,8 @@ export default function Feedback() {
       <p className="muted">Only the Acadex team can see your feedback. Please do not include passwords or sensitive information.</p>
       <button type="submit" className="action-button" disabled={action.busy}><Send size={18} />{action.busy ? 'Sending...' : 'Send feedback'}</button>
       <ActionStatus action={action} />
-    </form>
-    <Link to="/" className="text-link">Back to sign in</Link>
+    </form>:<Link className="action-button" to={loginUrl('/feedback')}>Sign in to share feedback</Link>}
+    <Link to="/login" className="text-link">Back to sign in</Link>
   </div>;
 }
 
