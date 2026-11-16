@@ -151,8 +151,8 @@ export default function PostListing() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto py-12 px-4">
-      <div className="text-center mb-10">
+    <div className="post-listing-page max-w-4xl mx-auto py-12 px-4">
+      <div className="post-listing-heading mb-10">
         <h1 className="text-4xl text-brand-navy mb-2">{editingId?'Edit Listing':'Create New Listing'}</h1>
         <p className="text-brand-light-navy text-sm">Fill in the details below to list your item for sale</p>
         {drafts.length > 0 && !editingId && (
@@ -162,7 +162,7 @@ export default function PostListing() {
         )}
       </div>
 
-      <div className="bg-[#E5E7EB] p-8 md:p-12 rounded-2xl shadow-sm">
+      <div className="listing-editor">
         <form onSubmit={handleSubmit}><fieldset disabled={loading||saving} className="space-y-8">
           {loading&&<p role="status">Loading listing...</p>}
           {error && <div className="bg-red-100 text-red-600 p-3 rounded-lg text-sm font-medium">{error}</div>}
@@ -298,11 +298,11 @@ export default function PostListing() {
           </div>
 
           <div className="pt-8 flex flex-col md:flex-row items-center justify-between border-t border-gray-300">
-            <label className="flex items-center text-[10px] text-brand-light-navy cursor-pointer mb-6 md:mb-0">
+            <label className="listing-terms text-xs text-brand-light-navy cursor-pointer mb-6 md:mb-0">
               <input type="checkbox" className="mr-2 rounded border-none bg-white" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} />
-              I agree to the <Link to="/terms-of-service" className="underline ml-1">Terms of Service</Link> and <Link to="/safety-tips" className="underline ml-1">Listing Guidelines</Link>
+              <span>I agree to the <Link to="/terms-of-service" className="underline">Terms of Service</Link> and <Link to="/safety-tips" className="underline">Listing Guidelines</Link></span>
             </label>
-            <div className="flex space-x-4 w-full md:w-auto">
+            <div className="listing-submit-actions w-full md:w-auto">
               <button type="button" onClick={() => void saveListing('draft')} className="flex-1 md:flex-none px-10 py-3 bg-[#A6B1C2] text-white font-bold rounded-lg hover:bg-gray-500 transition-colors">
                 {saving?'Saving...':'Save as Draft'}
               </button>

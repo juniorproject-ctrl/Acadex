@@ -4,6 +4,7 @@ import {KeyRound,LogOut,Trash2} from 'lucide-react';
 import {clearSession} from '../lib/auth';
 import {mutate} from '../lib/community';
 import {ActionStatus,Field,useAction} from './CommunityUI';
+import PasswordInput from './PasswordInput';
 
 export default function SecuritySettings(){
   const action=useAction(),navigate=useNavigate();
@@ -16,14 +17,14 @@ export default function SecuritySettings(){
         if(password!==confirmation)throw new Error('New passwords do not match.');
         await mutate('/account/security/password',{currentPassword:current,password});signOut();
       });}}>
-        <h3>Change password</h3><Field label="Current password"><input type="password" autoComplete="current-password" required value={current} onChange={e=>setCurrent(e.target.value)}/></Field>
-        <Field label="New password"><input type="password" autoComplete="new-password" required minLength={8} value={password} onChange={e=>setPassword(e.target.value)}/></Field>
-        <Field label="Confirm new password"><input type="password" autoComplete="new-password" required value={confirmation} onChange={e=>setConfirmation(e.target.value)}/></Field>
+        <h3>Change password</h3><Field label="Current password"><PasswordInput visibilityLabel="current password" autoComplete="current-password" required value={current} onChange={e=>setCurrent(e.target.value)}/></Field>
+        <Field label="New password"><PasswordInput visibilityLabel="new password" autoComplete="new-password" required minLength={8} value={password} onChange={e=>setPassword(e.target.value)}/></Field>
+        <Field label="Confirm new password"><PasswordInput visibilityLabel="confirmed password" autoComplete="new-password" required value={confirmation} onChange={e=>setConfirmation(e.target.value)}/></Field>
         <p className="muted">Use at least 8 characters, including a number and a special character. Changing your password signs out all devices.</p>
         <button className="action-button" disabled={action.busy}><KeyRound size={17}/>Update password</button>
       </form>
       <form className="editor-form" onSubmit={e=>{e.preventDefault();void action.run(async()=>{await mutate('/account/security/sign-out-all',{currentPassword:logoutPassword});signOut();});}}>
-        <h3>Sign out all devices</h3><Field label="Confirm your current password"><input type="password" autoComplete="current-password" required value={logoutPassword} onChange={e=>setLogoutPassword(e.target.value)}/></Field>
+        <h3>Sign out all devices</h3><Field label="Confirm your current password"><PasswordInput visibilityLabel="sign-out confirmation password" autoComplete="current-password" required value={logoutPassword} onChange={e=>setLogoutPassword(e.target.value)}/></Field>
         <button className="secondary-button" disabled={action.busy}><LogOut size={17}/>Sign out everywhere</button>
       </form>
       <ActionStatus action={action}/>
@@ -35,7 +36,7 @@ export default function SecuritySettings(){
       <details className="mt-4"><summary className="text-link cursor-pointer">Delete my account permanently</summary><form className="editor-form" onSubmit={e=>{e.preventDefault();void action.run(async()=>{
         await mutate('/account/security',{currentPassword:deletePassword,confirmation:deleteText},'DELETE');signOut();
       });}}>
-        <Field label="Password to delete account"><input type="password" autoComplete="current-password" required value={deletePassword} onChange={e=>setDeletePassword(e.target.value)}/></Field>
+        <Field label="Password to delete account"><PasswordInput visibilityLabel="account deletion password" autoComplete="current-password" required value={deletePassword} onChange={e=>setDeletePassword(e.target.value)}/></Field>
         <Field label="Type DELETE to confirm"><input required pattern="DELETE" autoComplete="off" value={deleteText} onChange={e=>setDeleteText(e.target.value)}/></Field>
         <button className="secondary-button text-red-700" disabled={action.busy||deleteText!=='DELETE'}><Trash2 size={17}/>Delete account</button><ActionStatus action={action}/>
       </form></details>

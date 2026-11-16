@@ -1,10 +1,6 @@
+import type { ListingCategory } from '../../shared/listingCategories';
+export { listingCategories, type ListingCategory } from '../../shared/listingCategories';
 export type ListingCondition = 'New' | 'Like New' | 'Good' | 'Fair';
-export type ListingCategory =
-  | 'Textbooks'
-  | 'Electronics'
-  | 'Supplies'
-  | 'Study Setup'
-  | 'Lab Equipment';
 
 export type DemoListing = {
   id: string;
@@ -22,14 +18,6 @@ export type DemoListing = {
 };
 
 const LISTINGS_KEY = 'acadex_user_listings';
-
-export const listingCategories: ListingCategory[] = [
-  'Textbooks',
-  'Electronics',
-  'Supplies',
-  'Study Setup',
-  'Lab Equipment',
-];
 
 export const listingConditions: ListingCondition[] = ['New', 'Like New', 'Good', 'Fair'];
 

@@ -2,6 +2,7 @@ import {useEffect,useRef,useState} from 'react';
 import {ShieldCheck,Lock,Copy,Check} from 'lucide-react';
 import {ActionStatus,Field,useAction} from './CommunityUI';
 import {mutate} from '../lib/community';
+import PasswordInput from './PasswordInput';
 type Status={key:string;email:string;role:string;status:string;passwordMatches:boolean;loginReady:boolean};
 export default function DemoAccountSetup({items,reload}:{items:{id:string;email:string;role:string;status:string}[];reload:()=>void}){
  const action=useAction(),fileInput=useRef<HTMLInputElement>(null);
@@ -30,7 +31,7 @@ export default function DemoAccountSetup({items,reload}:{items:{id:string;email:
     try{setAccounts(JSON.parse(await file.text()));}catch{setFileError('This is not a valid JSON file.');}
    }}/></Field>
    {fileError&&<p role="alert" className="error-box">{fileError}</p>}
-   <Field label="Your real administrator password"><input type="password" required autoComplete="current-password" value={password} onChange={e=>setPassword(e.target.value)}/></Field>
+   <Field label="Your real administrator password"><PasswordInput visibilityLabel="administrator password" required autoComplete="current-password" value={password} onChange={e=>setPassword(e.target.value)}/></Field>
    <label className="checkbox-label"><input type="checkbox" required checked={confirmed} onChange={e=>setConfirmed(e.target.checked)}/>I confirm these accounts are for private testing and their passwords and roles may be reset.</label>
    <button className="action-button" disabled={action.busy||!accounts||!confirmed}><ShieldCheck size={17}/>Synchronize test accounts</button>
    <button type="button" className="secondary-button" disabled={action.busy||!accounts||!password} onClick={()=>void action.run(async()=>{

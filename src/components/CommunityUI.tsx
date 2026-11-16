@@ -1,15 +1,19 @@
 import SearchableSelect from './SearchableSelect';
 import { simpleAcademicOptions } from '../lib/academicTopics';
 import { cloneElement, isValidElement, useEffect, useId, useState, type ReactElement, type ReactNode } from 'react';
-import { Link, NavLink, useSearchParams } from 'react-router-dom';
-import { Search, ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react';
+import { Link, NavLink, useLocation, useSearchParams } from 'react-router-dom';
+import { Accessibility, ArrowLeft, Bell, BookOpen, CalendarDays, ChevronLeft, ChevronRight, CreditCard, ExternalLink, FileText, GraduationCap, LayoutDashboard, LoaderCircle, MessageCircle, PackageOpen, Search, Settings, ShieldCheck, Users } from 'lucide-react';
 import { useResource, type Catalog } from '../lib/community';
 
 export function CommunityPage({title,children,action,showTabs=true}:{title:string;children:ReactNode;action?:ReactNode;showTabs?:boolean}) {
-  return <div className="community-page"><header className="community-heading"><div><Link to="/community" className="muted">Community</Link><h1>{title}</h1></div>{action}</header>{showTabs&&<nav className="community-tabs" aria-label="Community sections">{[['Past papers','/past-papers'],['Study groups','/study-groups'],['Tutors','/tutors'],['Campus events','/events']].map(([label,path])=><NavLink key={path} to={path}>{label}</NavLink>)}</nav>}{children}</div>;
+  const section=useLocation().pathname.split('/')[1]||'community';
+  const icons:Record<string,typeof BookOpen>={'community':Users,'past-papers':FileText,'study-groups':Users,tutors:GraduationCap,events:CalendarDays,dashboard:LayoutDashboard,bookings:CalendarDays,notifications:Bell,settings:Settings,accessibility:Accessibility,admin:ShieldCheck,'admin/tutor-applications':ShieldCheck,'apply-tutor':GraduationCap,messages:MessageCircle,payments:CreditCard,checkout:CreditCard};
+  const Icon=icons[section]||BookOpen;
+  const learning=['community','past-papers','study-groups','tutors','events','catalog'].includes(section);
+  return <div className={'community-page section-'+section}><header className="community-heading"><div className="page-heading-main"><span className="page-heading-icon"><Icon size={26} aria-hidden="true"/></span><div><Link to={learning?'/community':'/home'} className="page-breadcrumb"><ArrowLeft size={12} aria-hidden="true"/>{learning?'Community':'Home'}</Link><h1>{title}</h1></div></div>{action}</header>{showTabs&&<nav className="community-tabs" aria-label="Community sections">{[['Past papers','/past-papers'],['Study groups','/study-groups'],['Tutors','/tutors'],['Campus events','/events']].map(([label,path])=><NavLink key={path} to={path}>{label}</NavLink>)}</nav>}{children}</div>;
 }
 export function ErrorBox({error}:{error?:string}) {return error ? <p role="alert" className="error-box">{error}</p> : null;}
-export function Empty({children}:{children:ReactNode}) {return <p className="empty-state">{children}</p>;}
+export function Empty({children}:{children:ReactNode}) {const loading=typeof children==='string'&&/^Loading/i.test(children);return <div className="empty-state" role={loading?'status':undefined}>{loading?<LoaderCircle className="loading-indicator" size={24} aria-hidden="true"/>:<PackageOpen size={28} aria-hidden="true"/>}<p>{children}</p></div>;}
 export function Field({label,children}:{label:string;children:ReactNode}) {
   const id=useId();
   return <label className="community-field"><span id={id}>{label}</span>{isValidElement(children)?cloneElement(children as ReactElement<Record<string,unknown>>,{'aria-labelledby':id}):children}</label>;

@@ -9,6 +9,7 @@ import Community from './pages/Community';
 import SignIn from './pages/SignIn';
 import ForgotPassword from './pages/ForgotPassword';
 import SignUp from './pages/SignUp';
+import AuthLayout from './components/AuthLayout';
 import VerifyOTP from './pages/VerifyOTP';
 import { hasSession } from './lib/auth';
 import { loginUrl } from './lib/loginRedirect';
@@ -60,8 +61,10 @@ export default function App() {
       <Routes>
         {/* Auth Routes */}
         <Route path="/" element={<Layout><Home /></Layout>} />
-        <Route path="/login" element={<SignIn />} />
-        <Route path="/signup" element={<SignUp />} />
+        <Route element={<AuthLayout/>}>
+          <Route path="/login" element={<SignIn />} />
+          <Route path="/signup" element={<SignUp />} />
+        </Route>
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/verify" element={<VerifyOTP />} />
         {['help','contact','pricing-guide','safety-tips','terms-of-service','privacy-policy','advertise'].map(page=><Route key={page} path={'/'+page} element={<InformationPage page={page}/>}/>)}

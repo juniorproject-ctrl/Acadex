@@ -1,5 +1,5 @@
 import { Link,useSearchParams } from 'react-router-dom';
-import { ArrowRight,FileText,Download } from 'lucide-react';
+import { ArrowRight,CalendarDays,FileText,Download,GraduationCap,Users } from 'lucide-react';
 import { useResource,type PageData,type Paper,type Group,type Tutor,type CampusEvent } from '../lib/community';
 import { api,downloadPdf,type ApiListing } from '../lib/api';
 import { ActionStatus,CommunityPage,Empty,ErrorBox,useAction } from '../components/CommunityUI';
@@ -10,7 +10,8 @@ import { useEffect,useState,type ReactNode } from 'react';
 
 function Preview<T>({title,path,apiPath,render}:{title:string;path:string;apiPath:string;render:(item:T)=>ReactNode}) {
   const result=useResource<PageData<T>>(apiPath);
-  return <section className="hub-section"><div className="section-heading"><h2>{title}</h2><Link className="text-link" to={path}>View all<ArrowRight size={17}/></Link></div><ErrorBox error={result.error}/>{result.loading?<Empty>Loading...</Empty>:result.data?.items.length?<div className="community-grid">{result.data.items.map(render)}</div>:!result.error&&<Empty>No {title.toLowerCase()} found.</Empty>}</section>;
+  const Icon=title==='Past Papers'?FileText:title==='Study Groups'?Users:title==='Tutors'?GraduationCap:CalendarDays;
+  return <section className={'hub-section hub-'+path.split('?')[0].slice(1)}><div className="section-heading"><div className="hub-section-title"><Icon size={21} aria-hidden="true"/><h2>{title}</h2></div><Link className="text-link" to={path}>View all<ArrowRight size={17}/></Link></div><ErrorBox error={result.error}/>{result.loading?<Empty>Loading...</Empty>:result.data?.items.length?<div className="community-grid">{result.data.items.map(render)}</div>:!result.error&&<Empty>No {title.toLowerCase()} found.</Empty>}</section>;
 }
 export default function Community({search=false}:{search?:boolean}) {
   const [params]=useSearchParams(),q=params.get('q')||'';

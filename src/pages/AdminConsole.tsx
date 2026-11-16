@@ -3,6 +3,7 @@ import {Link} from 'react-router-dom';
 import {Trash2,EyeOff,Eye,Send,Save} from 'lucide-react';
 import {getCurrentUser} from '../lib/auth';
 import DemoAccountSetup from '../components/DemoAccountSetup';
+import PasswordInput from '../components/PasswordInput';
 import {formValues,mutate,useResource,dateTime} from '../lib/community';
 import {ActionStatus,CommunityPage,Empty,ErrorBox,Field,useAction} from '../components/CommunityUI';
 
@@ -20,8 +21,8 @@ function ListingRow({item,reload}:{item:any;reload:()=>void}){
 function UserRow({item,reload}:{item:any;reload:()=>void}){
   const action=useAction();
   return <article className="detail-section"><h2>{item.name}</h2><p>{item.email} | {item.verified?'Verified':'Unverified'}</p><form className="editor-form" onSubmit={e=>{
-    e.preventDefault();const form=e.currentTarget,body=formValues(form);void action.run(async()=>{await mutate('/admin/users/'+item.id,{...body,suspended:new FormData(form).has('suspended')},'PATCH');form.querySelector<HTMLInputElement>('input[type=password]')!.value='';reload();},'Account access updated.');
-  }}><Field label="Account ID"><input readOnly value={item.id}/></Field><div className="form-grid"><Field label="Role"><select name="role" defaultValue={item.role}><option value="student">Student</option><option value="tutor">Tutor</option><option value="leader">Study group leader</option><option value="admin">Administrator</option></select></Field><Field label="Your admin password"><input type="password" name="currentPassword" required autoComplete="current-password"/></Field></div><label className="checkbox-label"><input type="checkbox" name="suspended" defaultChecked={!!item.suspended}/>Suspend account</label><Field label="Reason for access change"><input name="reason" required minLength={5} maxLength={2000}/></Field><button className="action-button" disabled={action.busy}><Save size={16}/>Save access</button><ActionStatus action={action}/></form></article>;
+    e.preventDefault();const form=e.currentTarget,body=formValues(form);void action.run(async()=>{await mutate('/admin/users/'+item.id,{...body,suspended:new FormData(form).has('suspended')},'PATCH');form.querySelector<HTMLInputElement>('input[name=currentPassword]')!.value='';reload();},'Account access updated.');
+  }}><Field label="Account ID"><input readOnly value={item.id}/></Field><div className="form-grid"><Field label="Role"><select name="role" defaultValue={item.role}><option value="student">Student</option><option value="tutor">Tutor</option><option value="leader">Study group leader</option><option value="admin">Administrator</option></select></Field><Field label="Your admin password"><PasswordInput visibilityLabel="administrator password" name="currentPassword" required autoComplete="current-password"/></Field></div><label className="checkbox-label"><input type="checkbox" name="suspended" defaultChecked={!!item.suspended}/>Suspend account</label><Field label="Reason for access change"><input name="reason" required minLength={5} maxLength={2000}/></Field><button className="action-button" disabled={action.busy}><Save size={16}/>Save access</button><ActionStatus action={action}/></form></article>;
 }
 function ContactRow({item,reload}:{item:any;reload:()=>void}){
   const action=useAction();
