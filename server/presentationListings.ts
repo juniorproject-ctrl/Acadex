@@ -1,7 +1,8 @@
 import {createHash,randomBytes} from 'node:crypto';
 import bcrypt from 'bcrypt';
 import type {PoolConnection} from 'mysql2/promise';
-import {seedListings} from '../src/lib/demoListings';
+import {seedListings,type DemoListing} from '../src/lib/demoListings';
+import {presentationListingExtras} from './presentationListingExtras';
 import {ApiError} from './errors';
 import {rows} from './community/shared';
 
@@ -10,12 +11,14 @@ function presentationId(key:string){
   return `${hex.slice(0,8)}-${hex.slice(8,12)}-4${hex.slice(13,16)}-8${hex.slice(17,20)}-${hex.slice(20,32)}`;
 }
 
-export const presentationListings=seedListings.map(item=>({
+export const presentationListings=[...seedListings,...presentationListingExtras].map((item:DemoListing&{images?:string[]})=>({
   ...item,
   id:presentationId('listing:'+item.id),
   ownerId:presentationId('seller:'+item.id),
   email:`presentation-${item.id}@acadex.example`,
   imageId:presentationId('image:'+item.id),
+  images:item.images??[item.image],
+  imageIds:(item.images??[item.image]).map((_image,index)=>presentationId('image:'+item.id+(index?':'+index:''))),
 }));
 
 export async function presentationListingStatus(connection:PoolConnection){
@@ -39,7 +42,7 @@ export async function setPresentationListings(connection:PoolConnection,mode:'re
     if(!owner)await connection.execute('INSERT INTO users (id,name,email,password_hash,role,is_verified,is_suspended) VALUES (?,?,?,?,\'student\',FALSE,TRUE)',[item.ownerId,item.seller,item.email,passwordHash]);
     if(!existing){
       await connection.execute('INSERT INTO listings (id,owner_id,title,description,price,category,item_condition,location,status,pickup_available,seller_delivery,created_at) VALUES (?,?,?,?,?,?,?,?,\'ACTIVE\',TRUE,FALSE,?)',[item.id,item.ownerId,item.title,item.description||`${item.title}. ${item.subtitle}. Condition: ${item.condition}. Available for collection in ${item.location}.`,item.price,item.category,item.condition,item.location,new Date(item.createdAt)]);
-      await connection.execute('INSERT INTO listing_images (id,listing_id,image_url,position) VALUES (?,?,?,0)',[item.imageId,item.id,item.image]);
+      for(const [position,image] of item.images.entries())await connection.execute('INSERT INTO listing_images (id,listing_id,image_url,position) VALUES (?,?,?,?)',[item.imageIds[position],item.id,image,position]);
     }else{
       await connection.execute('UPDATE listings SET is_hidden=FALSE WHERE id=? AND owner_id=?',[item.id,item.ownerId]);
     }

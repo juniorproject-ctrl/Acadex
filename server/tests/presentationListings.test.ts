@@ -4,16 +4,31 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {presentationListings,setPresentationListings} from '../presentationListings';
 
-test('presentation collection preserves 50 original items and photos with reserved, separate identities',()=>{
-  assert.equal(presentationListings.length,50);
-  const ids=presentationListings.flatMap(item=>[item.id,item.ownerId,item.imageId]);
-  assert.equal(new Set(ids).size,150);
+test('presentation collection preserves the original 50 items and adds 11 approved listings',()=>{
+  assert.equal(presentationListings.length,61);
+  assert.equal(presentationListings.filter(item=>item.email.startsWith('presentation-seed-')).length,50);
+  const ids=presentationListings.flatMap(item=>[item.id,item.ownerId,...item.imageIds]);
+  assert.equal(new Set(ids).size,184);
   for(const item of presentationListings){
-    assert.match(item.email,/^presentation-seed-\d+@acadex\.example$/);
+    assert.match(item.email,/^presentation-(seed-\d+|extra-[a-z-]+)@acadex\.example$/);
     assert.ok(item.seller.includes(' '));
-    assert.ok(fs.existsSync(path.join(process.cwd(),'public',item.image)));
+    assert.equal(item.image,item.images[0]);
+    assert.equal(item.imageId,item.imageIds[0]);
+    for(const image of item.images)assert.ok(fs.existsSync(path.join(process.cwd(),'public',image)),image);
     assert.ok(!/demo|sample/i.test(item.title));
   }
+});
+
+test('new category collection has one boxing listing with both supplied photos',()=>{
+  const extras=presentationListings.filter(item=>item.email.startsWith('presentation-extra-'));
+  assert.equal(extras.filter(item=>item.category==='Sports & Fitness').length,4);
+  assert.equal(extras.filter(item=>item.category==='Art & Design').length,3);
+  assert.equal(extras.filter(item=>item.category==='Musical Instruments').length,1);
+  assert.equal(extras.filter(item=>item.category==='Home Essentials').length,3);
+  assert.equal(extras.filter(item=>item.category==='Clothing & Accessories').length,0);
+  const boxing=extras.filter(item=>item.title.includes('Boxing'));
+  assert.equal(boxing.length,1);assert.equal(boxing[0].images.length,2);
+  assert.notEqual(boxing[0].imageIds[0],boxing[0].imageIds[1]);
 });
 
 test('presentation restore is idempotent and hide affects only its reserved collection',async()=>{
@@ -29,13 +44,13 @@ test('presentation restore is idempotent and hide affects only its reserved coll
     if(sql.startsWith('SELECT l.id'))return [[...listings.values()].filter(l=>users.has(l.owner_id)).map(l=>({...l,email:users.get(l.owner_id).email}))];
     throw new Error('Unexpected query: '+sql);
   }};
-  assert.equal((await setPresentationListings(c,'restore')).visible,50);
-  assert.equal((await setPresentationListings(c,'restore')).visible,50);
-  assert.equal(users.size,50);assert.equal(listings.size,51);assert.equal(images,50);
+  assert.equal((await setPresentationListings(c,'restore')).visible,61);
+  assert.equal((await setPresentationListings(c,'restore')).visible,61);
+  assert.equal(users.size,61);assert.equal(listings.size,62);assert.equal(images,62);
   assert.equal((await setPresentationListings(c,'hide')).visible,0);
   assert.equal(listings.get('real-user-listing').is_hidden,0);
-  assert.equal((await setPresentationListings(c,'restore')).visible,50);
-  assert.equal(images,50);
+  assert.equal((await setPresentationListings(c,'restore')).visible,61);
+  assert.equal(images,62);
 });
 
 test('presentation import refuses to take over an unrelated identity',async()=>{
