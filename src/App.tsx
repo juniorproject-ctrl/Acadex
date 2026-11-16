@@ -64,7 +64,7 @@ export default function App() {
         <Route path="/signup" element={<SignUp />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/verify" element={<VerifyOTP />} />
-        {['help','contact','pricing-guide','safety-tips','terms-of-service','privacy-policy'].map(page=><Route key={page} path={'/'+page} element={<InformationPage page={page}/>}/>)}
+        {['help','contact','pricing-guide','safety-tips','terms-of-service','privacy-policy','advertise'].map(page=><Route key={page} path={'/'+page} element={<InformationPage page={page}/>}/>)}
 
         {/* Main App Routes */}
         <Route path="/home" element={<Layout><Home /></Layout>} />

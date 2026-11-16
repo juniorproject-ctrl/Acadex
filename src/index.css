@@ -46,6 +46,32 @@
   @apply bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow;
 }
 
+.student-offers { padding:48px 16px 0; border-top:1px solid #dce2e7; }
+.student-offers-heading { margin-bottom:24px; }
+.student-offers-heading p { margin-top:8px; color:#4a6d8c; line-height:1.6; }
+.student-offers-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:20px; }
+.student-offer { min-width:0; padding:22px; border:1px solid #dce2e7; border-radius:8px; transition:transform .18s ease,box-shadow .18s ease; }
+.student-offer-banking { background:#eaf0f6; }
+.student-offer-health { background:#edf5f1; }
+.student-offer-education { background:#faf5e7; }
+.student-offer-insurance { background:#f2eff6; }
+.student-offer-top { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:24px; }
+.student-offer-icon { display:grid; place-items:center; width:44px; height:44px; border-radius:8px; background:#ffffffb3; flex-shrink:0; }
+.student-offer-label { font-size:11px; color:#536579; }
+.student-offer-category { font-size:12px; font-weight:600; color:#4a6d8c; margin-bottom:8px; }
+.student-offer h3 { font-size:18px; line-height:1.4; overflow-wrap:anywhere; }
+.student-offer-description { font-size:14px; line-height:1.6; color:#536579; margin-top:10px; }
+.student-offers-disclaimer { font-size:12px; color:#536579; margin-top:16px; line-height:1.6; }
+.student-offers-inquiry { display:flex; align-items:center; justify-content:space-between; gap:28px; padding-top:28px; margin-top:28px; border-top:1px solid #d6dde3; }
+.student-offers-inquiry h3 { font-size:20px; line-height:1.4; }
+.student-offers-inquiry p { max-width:780px; margin-top:8px; font-size:14px; line-height:1.7; color:#4a6d8c; }
+.student-offers-inquiry .action-button { flex-shrink:0; }
+.student-offers a:focus-visible { outline:2px solid #2d4b69; outline-offset:3px; }
+@media(hover:hover) and (prefers-reduced-motion:no-preference) { .student-offer:hover { transform:translateY(-3px); box-shadow:0 6px 18px #2d4b6912; } }
+@media(max-width:1023px) { .student-offers-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:639px) { .student-offers-grid { grid-template-columns:1fr; } .student-offers-inquiry { flex-direction:column; align-items:flex-start; } }
+@media(prefers-reduced-motion:reduce) { .student-offer { transition:none; } }
+
 /* Shared community screens retain the existing Acadex palette. */
 .community-page { max-width:1280px; margin:auto; padding:32px 24px 64px; }
 .community-heading,.section-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:24px; }

@@ -5,6 +5,15 @@ import {formValues,mutate} from '../lib/community';
 import {ActionStatus,Field,useAction} from '../components/CommunityUI';
 import {Send} from 'lucide-react';
 const pages:Record<string,{title:string;sections:string[][]}>={
+  advertise: {
+    title: 'Advertise With Us',
+    sections: [
+      ['Connect with the academic community', 'Reach a focused academic audience through relevant services and opportunities for students and members of the academic community.'],
+      ['Who can advertise', 'Banks, healthcare providers, educational institutions, insurance companies, and other student-focused businesses can inquire about advertising on Acadex.'],
+      ['Advertising formats', 'Potential formats include sponsored cards, promotional banners, and featured offers. Placement, availability, and suitability can be discussed with the Acadex team.'],
+      ['Demonstration examples', 'The Student Offers & Partners cards are demonstration advertisements only. They do not represent real companies, active offers, or official partnerships.']
+    ]
+  },
   "pricing-guide": {
     "title": "Pricing guide",
     "sections": [
@@ -151,6 +160,7 @@ export default function InformationPage({page}:{page:string}){
     <nav aria-label="Support pages" className="flex flex-wrap gap-x-5 gap-y-3 border-b border-gray-200 pb-5 mb-8">{links.map(([path,label])=><Link key={path} to={'/'+path} className="text-link" aria-current={page===path?'page':undefined}>{label}</Link>)}</nav>
     <h1 className="text-3xl mb-6">{page==='contact'?'Contact us':content?.title}</h1>
     {content?.sections.map(([heading,body])=><section className="detail-section" key={heading}><h2>{heading}</h2><p className="preserve-lines leading-relaxed">{body}</p></section>)}
+    {page==='advertise'&&<section className="detail-section"><h2>Advertising inquiries</h2><p className="mb-4">Contact the Acadex team using our existing contact form. Mention advertising in your subject and tell us about your business and preferred format. Sign-in is required to send a message.</p><div className="flex flex-wrap gap-4"><Link className="action-button" to="/contact">Contact Acadex <Send size={17} aria-hidden="true"/></Link><Link className="text-link" to="/home">Back to home</Link></div></section>}
     {page==='contact'&&<><p>Send the Acadex team a support request. Use an email address you can receive replies at.</p>
     {getCurrentUser()?<form className="editor-form" onSubmit={e=>{e.preventDefault();const form=e.currentTarget,body=formValues(form);void action.run(async()=>{await mutate('/support',body);form.reset();},'Your message has been saved for the Acadex team. Replies will be sent to the email you provided.');}}>
       <Field label="Name"><input name="name" required minLength={2} maxLength={100} autoComplete="name"/></Field>

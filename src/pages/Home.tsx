@@ -4,6 +4,7 @@ import { Search, BookOpen, FileText, Users, Monitor, PenTool, Calendar, MoreHori
 import { motion } from 'motion/react';
 import { api, type ApiListing } from '../lib/api';
 import { searchCategories, searchDestination } from '../lib/search';
+import StudentOffers from '../components/StudentOffers';
 
 const categories = [
   { icon: <BookOpen />, name: 'Textbooks', count: '2,847 items' },
@@ -127,6 +128,7 @@ export default function Home() {
           <button onClick={() => navigate('/feedback')} className="action-button">Share feedback</button>
         </div>
       </section>
+      <StudentOffers />
     </div>
   );
 }
