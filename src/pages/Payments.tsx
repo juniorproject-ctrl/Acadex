@@ -11,9 +11,32 @@ export function Checkout(){
   const [params]=useSearchParams(),kind=params.get('kind')||'',reference=params.get('reference')||'',action=useAction();
   const offer=useResource<{title:string;amount:number;currency:string;pickupAvailable:boolean;sellerDelivery:boolean}>('/payments/offer?'+new URLSearchParams({kind,reference})),config=useResource<Config>('/payments/config');
   const [handover,setHandover]=useState('');
-  return <CommunityPage title="Checkout" showTabs={false}>
-    <p className="success-box">Test mode only. No real purchases or payouts.</p><ErrorBox error={offer.error||config.error}/><ActionStatus action={action}/>
-    {offer.loading?<Empty>Loading order...</Empty>:offer.data&&<section className="detail-intro"><h2>{offer.data.title}</h2><p className="text-2xl font-bold">AED {Number(offer.data.amount).toFixed(2)}</p><p><CreditCard size={23}/> Visa and Mastercard. Apple Pay and Google Pay appear on eligible devices through Stripe.</p>{kind==='listing'&&<><fieldset className="flex flex-col gap-3"><legend className="font-bold mb-2">Handover</legend>{offer.data.pickupAvailable&&<label><input type="radio" name="handover" value="pickup" checked={handover==='pickup'} onChange={e=>setHandover(e.target.value)}/> Buyer pickup</label>}{offer.data.sellerDelivery&&<label><input type="radio" name="handover" value="seller_delivery" checked={handover==='seller_delivery'} onChange={e=>setHandover(e.target.value)}/> Seller delivers personally</label>}</fieldset><p className="muted">Agree on the location and time with the seller. No courier delivery is included.</p><Link to={'/listings/'+reference} className="text-link">View listing and chat with seller</Link></>}<p className="muted">Card details are handled by Stripe, not stored by Acadex. Cash is not accepted.</p>{config.data&&!config.data.configured&&<p className="error-box">Test checkout is awaiting administrator setup. No payment can be taken yet.</p>}<button className="action-button" disabled={action.busy||!config.data?.configured||(kind==='listing'&&!handover)} onClick={()=>void action.run(async()=>{const result=await mutate<{url:string}>('/payments/checkout',{kind,reference,handover});window.location.assign(result.url);},'Opening secure test checkout...')}>Continue to test checkout</button><Link to="/payments" className="text-link">My payments</Link></section>}
+  return <CommunityPage title="Test Checkout" showTabs={false}>
+    <p className="success-box" role="note">Stripe test mode. No real money is charged and no funds are paid to sellers or tutors. Do not enter a real card.</p>
+    <ErrorBox error={offer.error||config.error}/><ActionStatus action={action}/>
+    {offer.loading?<Empty>Loading order...</Empty>:offer.data&&<section className="detail-intro">
+      <h2>{offer.data.title}</h2><p className="text-2xl font-bold">AED {Number(offer.data.amount).toFixed(2)}</p>
+      <p><CreditCard size={23} aria-hidden="true"/>Stripe-hosted card checkout</p>
+      {kind==='listing'&&<>
+        <fieldset className="flex flex-col gap-3"><legend className="font-bold mb-2">Handover</legend>
+          {offer.data.pickupAvailable&&<label><input type="radio" name="handover" value="pickup" checked={handover==='pickup'} onChange={e=>setHandover(e.target.value)}/> Buyer pickup</label>}
+          {offer.data.sellerDelivery&&<label><input type="radio" name="handover" value="seller_delivery" checked={handover==='seller_delivery'} onChange={e=>setHandover(e.target.value)}/> Seller delivers personally</label>}
+        </fieldset>
+        <p className="muted">Agree on the location and time with the seller. No courier delivery is included.</p>
+        <Link to={'/listings/'+reference} className="text-link">View listing and chat with seller</Link>
+      </>}
+      <p className="muted">Test card details go directly to Stripe, not Acadex. A successful test checkout updates the listing or booking in Acadex, so use a test item or session.</p>
+      <details className="stripe-test-details" open>
+        <summary>Stripe test card</summary>
+        <p>Card number: <code>4242 4242 4242 4242</code><br/>Expiry: any future month and year<br/>CVC: any three digits</p>
+      </details>
+      {config.loading&&<p role="status" className="muted">Checking test checkout availability...</p>}
+      {config.data&&!config.data.configured&&<p className="error-box">Test checkout is awaiting administrator setup. Stripe test keys and a test webhook must be configured first. No payment can be taken yet.</p>}
+      <button className="action-button" disabled={action.busy||!config.data?.configured||(kind==='listing'&&!handover)} onClick={()=>void action.run(async()=>{
+        const result=await mutate<{url:string}>('/payments/checkout',{kind,reference,handover});window.location.assign(result.url);
+      },'Opening secure test checkout...')}><CreditCard size={18} aria-hidden="true"/>Continue to test checkout</button>
+      <Link to="/payments" className="text-link">My payments</Link>
+    </section>}
   </CommunityPage>;
 }
 function OrderRow({order:o,onChange}:{order:Order;onChange:()=>void}){

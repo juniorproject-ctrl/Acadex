@@ -1,6 +1,6 @@
 import { useEffect,useRef,useState } from 'react';
 import { Link,useLocation,useNavigate } from 'react-router-dom';
-import { Accessibility,Bell,ChevronDown,CreditCard,GraduationCap,LayoutDashboard,LogOut,Settings,User,MessageCircle,ShoppingBag } from 'lucide-react';
+import { Paintbrush,Bell,ChevronDown,CreditCard,GraduationCap,LayoutDashboard,LogOut,Settings,User,MessageCircle,ShoppingBag } from 'lucide-react';
 import { clearSession,getCurrentUser } from '../lib/auth';
 
 export default function AccountMenu() {
@@ -42,7 +42,7 @@ export default function AccountMenu() {
       <Link role="menuitem" to="/my-reports"><Bell size={18}/>My reports and replies</Link>
       {user.role==='admin'&&<Link role="menuitem" to="/admin"><LayoutDashboard size={18}/>Website management</Link>}
       {user.role==='admin'?<Link role="menuitem" to="/admin/tutor-applications"><GraduationCap size={18}/>Tutor applications</Link>:<Link role="menuitem" to="/apply-tutor"><GraduationCap size={18}/>{user.role==='tutor'?'Tutor application':'Apply to tutor'}</Link>}
-      <Link role="menuitem" to="/accessibility"><Accessibility size={18}/>Accessibility</Link>
+      <Link role="menuitem" to="/accessibility"><Paintbrush size={18} aria-hidden="true"/>Accessibility</Link>
       <button role="menuitem" onClick={()=>{clearSession();navigate('/');}}><LogOut size={18}/>Sign out</button>
     </div>}
   </div>;

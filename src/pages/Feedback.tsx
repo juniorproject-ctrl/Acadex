@@ -1,4 +1,4 @@
-import { Send } from 'lucide-react';
+import { ArrowLeft, LogIn, MessageSquare, Send } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import BrandLogo from '../components/BrandLogo';
 import {getCurrentUser} from '../lib/auth';
@@ -8,10 +8,12 @@ import { formValues, mutate, useResource } from '../lib/community';
 
 export default function Feedback() {
   const action = useAction();
-  return <div className="community-page" style={{maxWidth: 672}}>
-    <div className="mb-8"><BrandLogo size="sm" /></div>
-    <header className="community-heading"><h1>Share your feedback</h1></header>
-    {getCurrentUser()?<form className="editor-form" onSubmit={e => {
+  const user = getCurrentUser();
+  return <div className="feedback-page">
+    <header className="feedback-topbar"><BrandLogo size="sm" /><Link to="/" className="text-link"><ArrowLeft size={16} aria-hidden="true"/>Back to Acadex</Link></header>
+    <main className="feedback-content">
+    <header className="feedback-heading"><MessageSquare size={30} aria-hidden="true"/><h1>Share your feedback</h1><p>Your ideas help shape Acadex.</p></header>
+    {user?<form className="editor-form" onSubmit={e => {
       e.preventDefault();
       const form = e.currentTarget;
       void action.run(async () => { await mutate('/feedback', formValues(form)); form.reset(); }, 'Thank you! Your feedback has been sent to the Acadex team.');
@@ -22,8 +24,8 @@ export default function Feedback() {
       <p className="muted">Only the Acadex team can see your feedback. Please do not include passwords or sensitive information.</p>
       <button type="submit" className="action-button" disabled={action.busy}><Send size={18} />{action.busy ? 'Sending...' : 'Send feedback'}</button>
       <ActionStatus action={action} />
-    </form>:<Link className="action-button" to={loginUrl('/feedback')}>Sign in to share feedback</Link>}
-    <Link to="/login" className="text-link">Back to sign in</Link>
+    </form>:<section className="feedback-guest"><h2>We would love to hear from you</h2><p>Sign in to send your suggestions, comments or anything that is not working.</p><Link className="action-button" to={loginUrl('/feedback')}><LogIn size={18} aria-hidden="true"/>Sign in to share feedback</Link><Link to="/" className="text-link">Continue browsing</Link></section>}
+    </main>
   </div>;
 }
 

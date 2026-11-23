@@ -2,12 +2,12 @@ import SearchableSelect from './SearchableSelect';
 import { simpleAcademicOptions } from '../lib/academicTopics';
 import { cloneElement, isValidElement, useEffect, useId, useState, type ReactElement, type ReactNode } from 'react';
 import { Link, NavLink, useLocation, useSearchParams } from 'react-router-dom';
-import { Accessibility, ArrowLeft, Bell, BookOpen, CalendarDays, ChevronLeft, ChevronRight, CreditCard, ExternalLink, FileText, GraduationCap, LayoutDashboard, LoaderCircle, MessageCircle, PackageOpen, Search, Settings, ShieldCheck, Users } from 'lucide-react';
+import { Paintbrush, ArrowLeft, Bell, BookOpen, CalendarDays, ChevronLeft, ChevronRight, CreditCard, ExternalLink, FileText, GraduationCap, LayoutDashboard, LoaderCircle, MessageCircle, PackageOpen, Search, Settings, ShieldCheck, Users } from 'lucide-react';
 import { useResource, type Catalog } from '../lib/community';
 
 export function CommunityPage({title,children,action,showTabs=true}:{title:string;children:ReactNode;action?:ReactNode;showTabs?:boolean}) {
   const section=useLocation().pathname.split('/')[1]||'community';
-  const icons:Record<string,typeof BookOpen>={'community':Users,'past-papers':FileText,'study-groups':Users,tutors:GraduationCap,events:CalendarDays,dashboard:LayoutDashboard,bookings:CalendarDays,notifications:Bell,settings:Settings,accessibility:Accessibility,admin:ShieldCheck,'admin/tutor-applications':ShieldCheck,'apply-tutor':GraduationCap,messages:MessageCircle,payments:CreditCard,checkout:CreditCard};
+  const icons:Record<string,typeof BookOpen>={'community':Users,'past-papers':FileText,'study-groups':Users,tutors:GraduationCap,events:CalendarDays,dashboard:LayoutDashboard,bookings:CalendarDays,notifications:Bell,settings:Settings,accessibility:Paintbrush,admin:ShieldCheck,'admin/tutor-applications':ShieldCheck,'apply-tutor':GraduationCap,messages:MessageCircle,payments:CreditCard,checkout:CreditCard};
   const Icon=icons[section]||BookOpen;
   const learning=['community','past-papers','study-groups','tutors','events','catalog'].includes(section);
   return <div className={'community-page section-'+section}><header className="community-heading"><div className="page-heading-main"><span className="page-heading-icon"><Icon size={26} aria-hidden="true"/></span><div><Link to={learning?'/community':'/home'} className="page-breadcrumb"><ArrowLeft size={12} aria-hidden="true"/>{learning?'Community':'Home'}</Link><h1>{title}</h1></div></div>{action}</header>{showTabs&&<nav className="community-tabs" aria-label="Community sections">{[['Past papers','/past-papers'],['Study groups','/study-groups'],['Tutors','/tutors'],['Campus events','/events']].map(([label,path])=><NavLink key={path} to={path}>{label}</NavLink>)}</nav>}{children}</div>;

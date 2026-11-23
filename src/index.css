@@ -666,6 +666,22 @@ body { line-height:1.5; }
 .section-settings>.settings-form { max-width:740px; }
 @media(max-width:480px) { .site-nav-actions { gap:4px; } .site-nav-actions .icon-button { width:36px; } .site-nav-actions .account-trigger { width:36px; padding-inline:6px; gap:0; } .site-nav-actions .account-trigger>svg:last-child { display:none; } }
 @media(max-width:360px) { .site-nav-actions>a[title=Messages] { display:none; } }
-@media(max-width:360px) { .large-text .site-nav-row>div:first-child { min-width:0; flex-shrink:1; } }
+@media(max-width:480px) { .large-text .site-nav-row>div:first-child { min-width:0; flex-shrink:1; } }
 .high-contrast .browse-intro h1,.high-contrast .browse-intro .browse-tagline,.high-contrast .browse-intro .browse-category-tabs button { color:#132d45; }
 .high-contrast .browse-intro .browse-category-tabs button[aria-pressed=true] { border-bottom-color:#132d45; }
+
+.feedback-page { min-height:100vh; background:#f4f7f9; color:#23445c; }
+.feedback-topbar { max-width:1120px; margin:0 auto; padding:24px; display:flex; align-items:center; justify-content:space-between; gap:24px; border-bottom:1px solid #d4dfe7; }
+.feedback-content { width:100%; max-width:720px; margin:0 auto; padding:56px 24px 64px; }
+.feedback-heading { margin-bottom:32px; }
+.feedback-heading>svg { color:#168477; margin-bottom:18px; }
+.feedback-heading h1 { font-size:32px; line-height:1.25; margin-bottom:12px; }
+.feedback-heading p,.feedback-guest p { color:#526b7a; line-height:1.75; }
+.feedback-guest { border-top:1px solid #d4dfe7; padding-top:28px; display:flex; flex-direction:column; align-items:flex-start; gap:20px; }
+.feedback-guest h2 { font-size:20px; line-height:1.4; }
+.feedback-guest .action-button { max-width:100%; white-space:normal; text-align:center; }
+.stripe-test-details { border-top:1px solid #d4dfe7; padding-top:16px; margin-top:8px; }
+.stripe-test-details summary { cursor:pointer; font-weight:600; }
+.stripe-test-details p { margin-top:12px; overflow-wrap:anywhere; }
+.stripe-test-details code { font-size:14px; color:#23445c; }
+@media(max-width:600px) { .feedback-topbar { padding:20px 16px; flex-wrap:wrap; gap:16px; } .feedback-content { padding:36px 20px 48px; } .feedback-heading h1 { font-size:28px; } .feedback-guest .action-button { width:100%; justify-content:center; } }
