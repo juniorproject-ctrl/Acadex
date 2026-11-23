@@ -86,8 +86,18 @@ test('private tutor applications and test-payment lifecycle',{skip:process.env.C
       const [order]=await query<any[]>('SELECT * FROM payment_orders WHERE id=?',[checkout.orderId]);assert.equal(order.status,'paid');
       assert.equal(order.handover_method,'pickup');
       const [item]=await query<any[]>('SELECT status FROM listings WHERE id=?',[listing]);assert.equal(item.status,'SOLD');
+      assert.equal((await webhook({...charge,refunded:false},'charge.refunded')).status,200);
+      const [stillPaid]=await query<any[]>('SELECT status FROM payment_orders WHERE id=?',[checkout.orderId]);assert.equal(stillPaid.status,'paid');
       assert.equal((await webhook(charge,'charge.refunded',refundEvent)).status,200);
       const [refunded]=await query<any[]>('SELECT status FROM payment_orders WHERE id=?',[checkout.orderId]);assert.equal(refunded.status,'refunded');
+      const refundNotices=()=>query<any[]>('SELECT user_id,title,href,is_read FROM notifications WHERE dedupe_key IN (?,?) ORDER BY user_id',['refund-buyer-'+checkout.orderId,'refund-seller-'+checkout.orderId]);
+      const notices=await refundNotices();assert.equal(notices.length,2);
+      assert.ok(notices.some(n=>n.user_id===users[0].id&&n.title==='Test payment refunded: Test listing'));
+      assert.ok(notices.some(n=>n.user_id===users[3].id&&n.title==='Test payment refunded to buyer: Test listing'));
+      for(const notice of notices){assert.equal(notice.href,'/payments');assert.equal(Number(notice.is_read),0);}
+      const replay=await Promise.all([webhook(charge,'charge.refunded',refundEvent),webhook(charge,'charge.refunded')]);
+      for(const response of replay)assert.equal(response.status,200);
+      assert.deepEqual(await refundNotices(),notices,'Refund retries must not create extra notifications');
       const other=await expect('/payments/orders',1,200);assert.equal(other.items.length,0);
     });
     await t.test('cancelling checkout releases its reservation',async()=>{
@@ -108,6 +118,9 @@ test('private tutor applications and test-payment lifecycle',{skip:process.env.C
       await expect('/payments/orders/'+checkout.orderId+'/refresh',0,200,{});
       dashboard=await expect('/account/dashboard',0,200);assert.equal(dashboard.bookings[0].meetingUrl,'https://example.com/test-meeting');
       await transaction(c=>refundBooking(c,booking,()=>fake));await transaction(c=>refundBooking(c,booking,()=>fake));assert.equal(refunds.size,1);
+      const before=await query<any[]>('SELECT id FROM notifications WHERE user_id=? AND title=?',[users[0].id,'Cancelled tutoring session: test payment refunded.']);assert.equal(before.length,1);
+      assert.equal((await webhook({payment_intent:session.payment_intent,refunded:true},'charge.refunded')).status,200);
+      const duplicates=await query<any[]>('SELECT id FROM notifications WHERE dedupe_key IN (?,?)',['refund-buyer-'+checkout.orderId,'refund-seller-'+checkout.orderId]);assert.equal(duplicates.length,0,'An already-notified cancellation must not send a second refund alert');
       dashboard=await expect('/account/dashboard',0,200);assert.equal(dashboard.bookings[0].meetingUrl,null);assert.equal(dashboard.bookings[0].paymentStatus,'refunded');
     });
   }finally{

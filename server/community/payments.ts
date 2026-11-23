@@ -8,11 +8,12 @@ import { query } from '../db';
 import { ApiError,asyncHandler } from '../errors';
 import { requireAuth } from '../middleware/auth';
 import { notify,rows,transaction,userId,verified } from './shared';
+import { stripeTestCredentials } from './paymentConfig';
 
 export function paymentClient(){
-  const key=process.env.STRIPE_SECRET_KEY;
-  if(!key?.startsWith('sk_test_')||!process.env.STRIPE_WEBHOOK_SECRET)return null;
-  return new Stripe(key,{timeout:10000,maxNetworkRetries:1});
+  const credentials=stripeTestCredentials();
+  if(!credentials)return null;
+  return new Stripe(credentials.secretKey,{timeout:10000,maxNetworkRetries:1});
 }
 function requiredClient(provider:()=>Stripe|null){const client=provider();if(!client)throw new ApiError(503,'Test payments are not configured. An administrator must add Stripe test keys and a webhook. No payment was taken.');return client;}
 async function offer(connection:PoolConnection,kind:string,reference:string){
@@ -72,7 +73,7 @@ export async function refundBooking(connection:PoolConnection,bookingId:string,p
 }
 export function paymentWebhook(provider=paymentClient){return asyncHandler(async(req,res)=>{
   const client=requiredClient(provider);let event:Stripe.Event;
-  try{event=client.webhooks.constructEvent(req.body,req.headers['stripe-signature'] as string,process.env.STRIPE_WEBHOOK_SECRET!);}catch{throw new ApiError(400,'Invalid webhook signature.');}
+  try{event=client.webhooks.constructEvent(req.body,req.headers['stripe-signature'] as string,process.env.STRIPE_WEBHOOK_SECRET!.trim());}catch{throw new ApiError(400,'Invalid webhook signature.');}
   if(event.livemode)throw new ApiError(400,'Live events are disabled.');
   if((await query<any[]>('SELECT id FROM payment_webhook_events WHERE id=?',[event.id])).length){res.json({received:true});return;}
   if(['checkout.session.completed','checkout.session.expired','checkout.session.async_payment_succeeded'].includes(event.type))await reconcileSession(event.data.object as Stripe.Checkout.Session,client);
@@ -80,10 +81,18 @@ export function paymentWebhook(provider=paymentClient){return asyncHandler(async
     const charge=event.data.object as Stripe.Charge;
     if(charge.refunded){
       const intent=typeof charge.payment_intent==='string'?charge.payment_intent:charge.payment_intent?.id;
-      const linked=await query<any[]>('SELECT id FROM payment_orders WHERE payment_intent_id=?',[intent||'']);
-      // Stripe may deliver a refund before checkout completion; retry after the order is linked.
-      if(!linked.length)throw new ApiError(409,'Refund arrived before its checkout confirmation; retry.');
-      await query("UPDATE payment_orders SET status='refunded' WHERE payment_intent_id=? AND status IN ('pending','paid')",[intent]);
+      await transaction(async connection=>{
+        const linked=await rows(connection,'SELECT * FROM payment_orders WHERE payment_intent_id=? FOR UPDATE',[intent||'']);
+        // Lock the status transition and its notifications together so retries cannot duplicate alerts.
+        if(!linked.length)throw new ApiError(409,'Refund arrived before its checkout confirmation; retry.');
+        for(const order of linked){
+          if(!['pending','paid'].includes(order.status))continue;
+          await connection.execute("UPDATE payment_orders SET status='refunded' WHERE id=?",[order.id]);
+          const href=order.kind==='booking'?'/bookings/'+order.reference_id:'/payments';
+          await notify(connection,order.buyer_id,'Test payment refunded: '+order.title,href,'refund-buyer-'+order.id);
+          await notify(connection,order.seller_id,'Test payment refunded to buyer: '+order.title,href,'refund-seller-'+order.id);
+        }
+      });
     }
   }
   await query('INSERT IGNORE INTO payment_webhook_events (id) VALUES (?)',[event.id]);res.json({received:true});
